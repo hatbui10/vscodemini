@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Database Generator - Floor Fixed</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #050508; /* Giao diện tối Ultra Dark */
+            color: #00f0ff; /* Chữ màu xanh màu Neon Cyan */
+            margin: 0;
+            padding: 0 3px; /* Cách hai biên đúng 3px */
+            padding-top: 30px; /* Cách mép trên đúng 30px */
+            box-sizing: border-box;
+        }
+        .container {
+            background: #0d0e15;
+            border: 1px solid #ff007f; /* Viền màu hồng Neon Pink */
+            padding: 20px 12px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(255, 0, 127, 0.25);
+            max-width: 500px;
+            margin: auto;
+        }
+        h2 {
+            color: #ff007f;
+            text-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
+            text-align: center;
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #ff007f;
+            text-transform: uppercase;
+        }
+        /* Style các ô nhập liệu và dropdown */
+        select, textarea, input {
+            width: 100%;
+            background-color: #090a0f;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #ffffff;
+            padding: 10px;
+            font-size: 14px;
+            box-sizing: border-box;
+            font-family: inherit;
+            outline: none;
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: #00f0ff;
+            box-shadow: 0 0 5px rgba(0, 240, 255, 0.4);
+        }
+        .btn-copy {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            color: #00f0ff;
+            border: 2px solid #00f0ff;
+            text-align: center;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            box-sizing: border-box;
+            text-shadow: 0 0 5px rgba(0, 240, 255, 0.5);
+            box-shadow: inset 0 0 8px rgba(0, 240, 255, 0.1);
+            text-transform: uppercase;
+            margin-top: 10px;
+        }
+        .btn-copy:active {
+            background: rgba(0, 240, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>⚡ CYBER CODE GENERATOR ⚡</h2>
+
+    <div class="form-group">
+        <label>1. Tên lớp:</label>
+        <input type="text" id="inputClassName" oninput="generateDatabaseCode()" placeholder="Nhập tên lớp (VD: Donald, Mickey)">
+    </div>
+
+    <div class="form-group">
+        <label>2. Tầng & Địa điểm nhà:</label>
+        <select id="scheduleDropdown" onchange="generateDatabaseCode()">
+            <option value="T2-237">Tầng 2 - Nhà 237 (T2-237)</option>
+            <option value="T3-237">Tầng 3 - Nhà 237 (T3-237)</option>
+            <option value="T4-237">Tầng 4 - Nhà 237 (T4-237)</option>
+            <option value="T5-237">Tầng 5 - Nhà 237 (T5-237)</option>
+            <option value="T6-237">Tầng 6 - Nhà 237 (T6-237)</option>
+            <option value="T7-237">Tầng 7 - Nhà 237 (T7-237)</option>
+            <option value="T1-30">Tầng 1 - Nhà 30 (T1-30)</option>
+            <option value="T2-30">Tầng 2 - Nhà 30 (T2-30)</option>
+            <option value="T3-30">Tầng 3 - Nhà 30 (T3-30)</option>
+            <option value="T1-58">Tầng 1 - Nhà 58 (T1-58)</option>
+            <option value="T2-58">Tầng 2 - Nhà 58 (T2-58)</option>
+            <option value="T3-58">Tầng 3 - Nhà 58 (T3-58)</option>
+            <option value="T2-158">Tầng 2 - Nhà 158 (T2-158)</option>
+            <option value="T3-158">Tầng 3 - Nhà 158 (T3-158)</option>
+            <option value="T4-158">Tầng 4 - Nhà 158 (T4-158)</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>3. Khung giờ học:</label>
+        <select id="timeDropdown" onchange="generateDatabaseCode()">
+            <option value="18h30">18h30</option>
+            <option value="18h45">18h45</option>
+            <option value="19h30">19h30</option>
+            <option value="19h45">19h45</option>
+            <option value="17h00">17h00</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>4. Nhập danh sách học sinh (Mỗi người 1 dòng):</label>
+        <textarea id="rawStudents" style="height: 150px;" oninput="generateDatabaseCode()" placeholder="Lê Đại Nghĩa&#10;Đặng Thúy Quỳnh&#10;Hoàng Quốc Bảo&#10;Bùi Tuấn Anh"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>5. Mã Code Database thu được:</label>
+        <textarea id="codeOutput" style="height: 180px; border-color: #ffb700; color: #ffb700; font-family: 'Courier New', Courier, monospace; font-size: 13px;" readonly placeholder="Kết quả định dạng code sẽ xuất ra tại đây..."></textarea>
+        <button class="btn-copy" type="button" id="copyBtn" onclick="copyCode()">📋 Sao Chép Mã Code</button>
+    </div>
+</div>
+
+<script>
+    function generateDatabaseCode() {
+        const className = document.getElementById('inputClassName').value.trim() || "TênLớp";
+        const schedule = document.getElementById('scheduleDropdown').value;
+        const timeText = document.getElementById('timeDropdown').value;
+        const rawText = document.getElementById('rawStudents').value;
+        const codeOutput = document.getElementById('codeOutput');
+
+        const lines = rawText.split(/\r?\n/);
+        let studentList = [];
+
+        lines.forEach(line => {
+            let name = line.trim();
+            if (name.length > 0) {
+                // Xử lý loại bỏ số thứ tự ở đầu dòng tên học sinh
+                name = name.replace(/^\s*\d+[\s\.\,\-]*\s*/, '');
+                if (name.length > 0) {
+                    studentList.push(name);
+                }
+            }
+        });
+
+        // Kết quả xuất ra chuẩn không có dấu chấm: "Donald T4-123 17h00"
+        let outputCode = `"${className} ${schedule} ${timeText}": [\n`;
+        
+        studentList.forEach((student, index) => {
+            outputCode += `            "${student}"`;
+            if (index < studentList.length - 1) {
+                outputCode += ",\n";
+            } else {
+                outputCode += "\n";
+            }
+        });
+        
+        outputCode += `        ]`;
+
+        codeOutput.value = outputCode;
+    }
+
+    function copyCode() {
+        const textToCopy = document.getElementById('codeOutput').value;
+        const btn = document.getElementById('copyBtn');
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            btn.innerText = "✓ ĐÃ SAO CHÉP MÃ CODE!";
+            btn.style.color = "#00ff66";
+            btn.style.borderColor = "#00ff66";
+
+            setTimeout(() => {
+                btn.innerText = "📋 Sao Chép Mã Code";
+                btn.style.color = "#00f0ff";
+                btn.style.borderColor = "#00f0ff";
+            }, 1500);
+        }).catch(err => {
+            console.error(err);
+            alert("Lỗi sao chép!");
+        });
+    }
+</script>
+
+</body>
+</html>
