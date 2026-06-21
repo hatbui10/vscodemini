@@ -2,14 +2,14 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tool Tạo Dữ liệu Lớp</title>
     <style>
         body { font-family: sans-serif; padding: 15px; background: #2c3e50; color: white; margin: 0; }
         .container { max-width: 600px; margin: auto; background: #34495e; padding: 20px; border-radius: 12px; }
-        input, textarea { display: block; width: 100%; margin: 10px 0; padding: 15px; border: none; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input, textarea { display: block; width: 100%; margin: 8px 0; padding: 12px; border: none; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .row { display: flex; gap: 10px; }
         button { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin: 8px 0; }
-        .btn-add { background: #27ae60; color: white; }
         .btn-bulk { background: #e67e22; color: white; }
         .btn-copy { background: #3498db; color: white; }
         pre { background: #1a252f; padding: 15px; border-radius: 8px; border-left: 5px solid #3498db; overflow-x: auto; font-size: 14px; }
@@ -18,24 +18,21 @@
 <body>
 
 <div class="container">
-    <h2 style="text-align:center">Tạo Dữ liệu Lớp Học</h2>
+    <h2 style="text-align:center">Tạo Dữ liệu Lớp</h2>
     <input type="text" id="tenLop" placeholder="Tên lớp (VD: 12A1)">
     
     <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-        <h4 style="margin-top:0">Thêm đơn lẻ:</h4>
-        <input type="text" id="hsTen" placeholder="Họ tên">
-        <input type="tel" id="hsSdt" placeholder="SĐT">
-        <input type="text" id="hsHocPhi" placeholder="Học phí">
-        <button class="btn-add" onclick="themHs()">+ Thêm vào danh sách</button>
+        <h4 style="margin-top:0">Thêm từ Excel:</h4>
+        <textarea id="bulkInput" rows="3" placeholder="Dán dữ liệu Copy từ Excel vào đây..."></textarea>
+        
+        <div class="row">
+            <input type="number" id="colTen" placeholder="Cột tên (số)">
+            <input type="number" id="colSdt" placeholder="Cột SĐT (số)">
+        </div>
+        <button class="btn-bulk" onclick="themHangLoat()">📥 Thêm từ Excel</button>
     </div>
 
-    <div style="margin-top: 20px;">
-        <h4 style="margin-top:0">Thêm hàng loạt từ Excel/Sheets:</h4>
-        <textarea id="bulkInput" rows="4" placeholder="Dán (Copy từ Excel/Sheets rồi dán vào đây)"></textarea>
-        <button class="btn-bulk" onclick="themHangLoat()">📥 Thêm danh sách từ Excel</button>
-    </div>
-
-    <h3>Kết quả định dạng sạch:</h3>
+    <h3>Kết quả:</h3>
     <pre id="jsonOutput">// Dữ liệu sẽ xuất hiện tại đây...</pre>
     <button class="btn-copy" onclick="copyJson()">📋 Copy định dạng sạch</button>
 </div>
@@ -43,7 +40,30 @@
 <script>
     let danhSachHs = [];
 
-    function updateOutput(tenLop) {
+    function themHangLoat() {
+        let rawText = document.getElementById('bulkInput').value.trim();
+        let tenLop = document.getElementById('tenLop').value.trim();
+        let colTen = parseInt(document.getElementById('colTen').value) - 1;
+        let colSdt = parseInt(document.getElementById('colSdt').value) - 1;
+
+        if(!tenLop || isNaN(colTen) || isNaN(colSdt)) {
+            return alert("Vui lòng nhập Tên lớp và số thứ tự cột (ví dụ: 1 và 5)");
+        }
+
+        let lines = rawText.split('\n');
+        lines.forEach(line => {
+            let parts = line.split('\t');
+            if(parts.length > Math.max(colTen, colSdt)) {
+                danhSachHs.push({ 
+                    ten: parts[colTen].trim(), 
+                    lop: tenLop, 
+                    sdt: parts[colSdt].trim(), 
+                    hocPhi: "0" 
+                });
+            }
+        });
+
+        // Cập nhật hiển thị
         let output = `{\n    tenLop: "${tenLop}",\n    hocSinh: [\n`;
         output += danhSachHs.map(hs => 
             `        { ten: "${hs.ten}", lop: "${hs.lop}", sdt: "${hs.sdt}", hocPhi: "${hs.hocPhi}" }`
@@ -52,54 +72,10 @@
         document.getElementById('jsonOutput').innerText = output;
     }
 
-    function themHs() {
-        let tenLop = document.getElementById('tenLop').value.trim();
-        let ten = document.getElementById('hsTen').value.trim();
-        let sdt = document.getElementById('hsSdt').value.trim();
-        let hocPhi = document.getElementById('hsHocPhi').value.trim();
-
-        if(!tenLop || !ten) return alert("Vui lòng nhập Tên lớp và Tên học sinh!");
-
-        danhSachHs.push({ ten, lop: tenLop, sdt, hocPhi });
-        updateOutput(tenLop);
-        
-        document.getElementById('hsTen').value = '';
-        document.getElementById('hsSdt').value = '';
-        document.getElementById('hsHocPhi').value = '';
-        document.getElementById('hsTen').focus();
-    }
-
-    function themHangLoat() {
-    let rawText = document.getElementById('bulkInput').value.trim();
-    let tenLop = document.getElementById('tenLop').value.trim();
-    
-    // Yêu cầu người dùng nhập thứ tự cột (Ví dụ: cột 1 là tên, cột 5 là SĐT)
-    let colTen = prompt("Cột thứ mấy là Họ tên? (Ví dụ: 1)", "1") - 1;
-    let colSdt = prompt("Cột thứ mấy là SĐT? (Ví dụ: 5)", "5") - 1;
-
-    if(!tenLop) return alert("Nhập Tên lớp trước!");
-
-    let lines = rawText.split('\n');
-    lines.forEach(line => {
-        let parts = line.split('\t'); 
-        if(parts.length > Math.max(colTen, colSdt)) {
-            danhSachHs.push({ 
-                ten: parts[colTen].trim(), 
-                lop: tenLop, 
-                sdt: parts[colSdt].trim(), 
-                hocPhi: "0" 
-            });
-        }
-    });
-    updateOutput(tenLop);
-}
-
-
     function copyJson() {
         let text = document.getElementById('jsonOutput').innerText;
         navigator.clipboard.writeText(text).then(() => alert("Đã copy!"));
     }
 </script>
-
 </body>
 </html>
