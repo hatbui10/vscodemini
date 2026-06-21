@@ -1,3 +1,13 @@
+📂 Mở File
+🔄 Reset
+↩ Undo
+↪ Redo
+⌨️ Phím nhanh
+HTML
+CSS
+JS
+💾 LƯU FILE
+CHẠY ▶
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -24,10 +34,7 @@
         <h4 style="margin-top:0">Thêm hàng loạt từ Excel:</h4>
         <textarea id="bulkInput" rows="3" placeholder="Dán dữ liệu Copy từ Excel vào đây..."></textarea>
         
-        <div class="row">
-            <input type="text" id="colTen" placeholder="Cột Tên (VD: A)">
-            <input type="text" id="colSdt" placeholder="Cột SĐT (VD: E)">
-        </div>
+        
         <button class="btn-bulk" onclick="themHangLoat()">📥 Thêm từ Excel</button>
     </div>
 
@@ -49,38 +56,40 @@
     }
 
     function themHangLoat() {
-        let rawText = document.getElementById('bulkInput').value.trim();
-        let tenLop = document.getElementById('tenLop').value.trim();
-        
-        // Chuyển chữ cái nhập vào thành chỉ số cột
-        let colTen = letterToColumn(document.getElementById('colTen').value.toUpperCase().trim());
-        let colSdt = letterToColumn(document.getElementById('colSdt').value.toUpperCase().trim());
+    let rawText = document.getElementById('bulkInput').value.trim();
+    let tenLop = document.getElementById('tenLop').value.trim();
+    
+    if(!tenLop) return alert("Nhập Tên lớp trước!");
 
-        if(!tenLop || isNaN(colTen) || isNaN(colSdt)) {
-            return alert("Vui lòng nhập Tên lớp và Chữ cái cột (ví dụ: A và E)");
+    let lines = rawText.split('\n');
+    lines.forEach(line => {
+        let parts = line.split('\t'); // Tách theo dấu Tab
+        
+        // Tự tìm dữ liệu: 
+        // - Tên thường nằm ở cột đầu tiên (parts[0])
+        // - SĐT thường là cột cuối cùng (parts[parts.length - 1])
+        let ten = parts[0] ? parts[0].trim() : "";
+        let sdt = parts[parts.length - 1] ? parts[parts.length - 1].trim() : "";
+
+        // Kiểm tra nếu SĐT không phải là số (thường nằm ở cuối), 
+        // thì lùi lại tìm cột sát cuối
+        if (!/^\d[\d\s-]*\d$/.test(sdt) && parts.length > 1) {
+            sdt = parts[parts.length - 2] ? parts[parts.length - 2].trim() : "";
         }
 
-        let lines = rawText.split('\n');
-        lines.forEach(line => {
-            let parts = line.split('\t');
-            if(parts.length > Math.max(colTen, colSdt)) {
-                danhSachHs.push({ 
-                    ten: parts[colTen].trim(), 
-                    lop: tenLop, 
-                    sdt: parts[colSdt].trim(), 
-                    hocPhi: "0" 
-                });
-            }
-        });
+        if(ten && sdt.length >= 8) { // Chỉ thêm nếu có tên và SĐT hợp lệ
+            danhSachHs.push({ ten: ten, lop: tenLop, sdt: sdt, hocPhi: "0" });
+        }
+    });
 
-        // Cập nhật hiển thị
-        let output = `{\n    tenLop: "${tenLop}",\n    hocSinh: [\n`;
-        output += danhSachHs.map(hs => 
-            `        { ten: "${hs.ten}", lop: "${hs.lop}", sdt: "${hs.sdt}", hocPhi: "${hs.hocPhi}" }`
-        ).join(',\n');
-        output += `\n    ]\n},`;
-        document.getElementById('jsonOutput').innerText = output;
-    }
+    // Cập nhật hiển thị
+    let output = `{\n    tenLop: "${tenLop}",\n    hocSinh: [\n`;
+    output += danhSachHs.map(hs => 
+        `        { ten: "${hs.ten}", lop: "${hs.lop}", sdt: "${hs.sdt}", hocPhi: "${hs.hocPhi}" }`
+    ).join(',\n');
+    output += `\n    ]\n},`;
+    document.getElementById('jsonOutput').innerText = output;
+}
 
     function copyJson() {
         let text = document.getElementById('jsonOutput').innerText;
