@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -7,8 +6,7 @@
     <style>
         body { font-family: sans-serif; padding: 15px; background: #2c3e50; color: white; margin: 0; }
         .container { max-width: 600px; margin: auto; background: #34495e; padding: 20px; border-radius: 12px; }
-        input, textarea { display: block; width: 100%; margin: 8px 0; padding: 12px; border: none; border-radius: 8px; box-sizing: border-box; font-size: 16px; text-transform: uppercase; }
-        .row { display: flex; gap: 10px; }
+        input, textarea { display: block; width: 100%; margin: 8px 0; padding: 12px; border: none; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
         button { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin: 8px 0; }
         .btn-bulk { background: #e67e22; color: white; }
         .btn-copy { background: #3498db; color: white; }
@@ -19,13 +17,12 @@
 
 <div class="container">
     <h2 style="text-align:center">Tạo Dữ liệu Lớp</h2>
-    <input type="text" id="tenLop" placeholder="Tên lớp (VD: 12A1)">
+    <input type="text" id="tenLop" placeholder="Tên lớp chính (VD: CAN)">
+    <input type="text" id="soLopHs" placeholder="Số lớp của học sinh (VD: 1 hoặc 2)">
     
     <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
         <h4 style="margin-top:0">Thêm hàng loạt từ Excel:</h4>
-        <textarea id="bulkInput" rows="3" placeholder="Dán dữ liệu Copy từ Excel vào đây..."></textarea>
-        
-        
+        <textarea id="bulkInput" rows="3" placeholder="Dán dữ liệu từ Excel vào đây..."></textarea>
         <button class="btn-bulk" onclick="themHangLoat()">📥 Thêm từ Excel</button>
     </div>
 
@@ -37,50 +34,37 @@
 <script>
     let danhSachHs = [];
 
-    // Hàm chuyển chữ cái Excel (A, B, C...) sang số thứ tự cột (0, 1, 2...)
-    function letterToColumn(letter) {
-        let column = 0, length = letter.length;
-        for (let i = 0; i < length; i++) {
-            column += (letter.charCodeAt(i) - 64) * Math.pow(26, length - i - 1);
-        }
-        return column - 1;
-    }
-
     function themHangLoat() {
-    let rawText = document.getElementById('bulkInput').value.trim();
-    let tenLop = document.getElementById('tenLop').value.trim();
-    
-    if(!tenLop) return alert("Nhập Tên lớp trước!");
-
-    let lines = rawText.split('\n');
-    lines.forEach(line => {
-        let parts = line.split('\t'); // Tách theo dấu Tab
+        let rawText = document.getElementById('bulkInput').value.trim();
+        let tenLopChinh = document.getElementById('tenLop').value.trim();
+        let soLopHs = document.getElementById('soLopHs').value.trim();
         
-        // Tự tìm dữ liệu: 
-        // - Tên thường nằm ở cột đầu tiên (parts[0])
-        // - SĐT thường là cột cuối cùng (parts[parts.length - 1])
-        let ten = parts[0] ? parts[0].trim() : "";
-        let sdt = parts[parts.length - 1] ? parts[parts.length - 1].trim() : "";
+        if(!tenLopChinh || !soLopHs) return alert("Nhập Tên lớp chính và Số lớp của học sinh!");
 
-        // Kiểm tra nếu SĐT không phải là số (thường nằm ở cuối), 
-        // thì lùi lại tìm cột sát cuối
-        if (!/^\d[\d\s-]*\d$/.test(sdt) && parts.length > 1) {
-            sdt = parts[parts.length - 2] ? parts[parts.length - 2].trim() : "";
-        }
+        let lines = rawText.split('\n');
+        lines.forEach(line => {
+            let parts = line.split('\t');
+            let ten = parts[0] ? parts[0].trim() : "";
+            let sdt = parts[parts.length - 1] ? parts[parts.length - 1].trim() : "";
 
-        if(ten && sdt.length >= 8) { // Chỉ thêm nếu có tên và SĐT hợp lệ
-            danhSachHs.push({ ten: ten, lop: tenLop, sdt: sdt, hocPhi: "0" });
-        }
-    });
+            if (!/^\d[\d\s-]*\d$/.test(sdt) && parts.length > 1) {
+                sdt = parts[parts.length - 2] ? parts[parts.length - 2].trim() : "";
+            }
 
-    // Cập nhật hiển thị
-    let output = `{\n    tenLop: "${tenLop}",\n    hocSinh: [\n`;
-    output += danhSachHs.map(hs => 
-        `        { ten: "${hs.ten}", lop: "${hs.lop}", sdt: "${hs.sdt}", hocPhi: "${hs.hocPhi}" }`
-    ).join(',\n');
-    output += `\n    ]\n},`;
-    document.getElementById('jsonOutput').innerText = output;
-}
+            if(ten && sdt.length >= 8) {
+                // Gán 'soLopHs' vào thuộc tính 'lop' của học sinh
+                danhSachHs.push({ ten: ten, lop: soLopHs, sdt: sdt, hocPhi: "0" });
+            }
+        });
+
+        // Xuất ra định dạng sạch
+        let output = `{\n    tenLop: "${tenLopChinh}",\n    hocSinh: [\n`;
+        output += danhSachHs.map(hs => 
+            `        { ten: "${hs.ten}", lop: "${hs.lop}", sdt: "${hs.sdt}", hocPhi: "${hs.hocPhi}" }`
+        ).join(',\n');
+        output += `\n    ]\n},`;
+        document.getElementById('jsonOutput').innerText = output;
+    }
 
     function copyJson() {
         let text = document.getElementById('jsonOutput').innerText;
