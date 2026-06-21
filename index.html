@@ -2,12 +2,11 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tool Tạo Dữ liệu Lớp</title>
     <style>
         body { font-family: sans-serif; padding: 15px; background: #2c3e50; color: white; margin: 0; }
         .container { max-width: 600px; margin: auto; background: #34495e; padding: 20px; border-radius: 12px; }
-        input, textarea { display: block; width: 100%; margin: 8px 0; padding: 12px; border: none; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        input, textarea { display: block; width: 100%; margin: 8px 0; padding: 12px; border: none; border-radius: 8px; box-sizing: border-box; font-size: 16px; text-transform: uppercase; }
         .row { display: flex; gap: 10px; }
         button { width: 100%; padding: 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; margin: 8px 0; }
         .btn-bulk { background: #e67e22; color: white; }
@@ -22,12 +21,12 @@
     <input type="text" id="tenLop" placeholder="Tên lớp (VD: 12A1)">
     
     <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px;">
-        <h4 style="margin-top:0">Thêm từ Excel:</h4>
+        <h4 style="margin-top:0">Thêm hàng loạt từ Excel:</h4>
         <textarea id="bulkInput" rows="3" placeholder="Dán dữ liệu Copy từ Excel vào đây..."></textarea>
         
         <div class="row">
-            <input type="number" id="colTen" placeholder="Cột tên (số)">
-            <input type="number" id="colSdt" placeholder="Cột SĐT (số)">
+            <input type="text" id="colTen" placeholder="Cột Tên (VD: A)">
+            <input type="text" id="colSdt" placeholder="Cột SĐT (VD: E)">
         </div>
         <button class="btn-bulk" onclick="themHangLoat()">📥 Thêm từ Excel</button>
     </div>
@@ -40,14 +39,25 @@
 <script>
     let danhSachHs = [];
 
+    // Hàm chuyển chữ cái Excel (A, B, C...) sang số thứ tự cột (0, 1, 2...)
+    function letterToColumn(letter) {
+        let column = 0, length = letter.length;
+        for (let i = 0; i < length; i++) {
+            column += (letter.charCodeAt(i) - 64) * Math.pow(26, length - i - 1);
+        }
+        return column - 1;
+    }
+
     function themHangLoat() {
         let rawText = document.getElementById('bulkInput').value.trim();
         let tenLop = document.getElementById('tenLop').value.trim();
-        let colTen = parseInt(document.getElementById('colTen').value) - 1;
-        let colSdt = parseInt(document.getElementById('colSdt').value) - 1;
+        
+        // Chuyển chữ cái nhập vào thành chỉ số cột
+        let colTen = letterToColumn(document.getElementById('colTen').value.toUpperCase().trim());
+        let colSdt = letterToColumn(document.getElementById('colSdt').value.toUpperCase().trim());
 
         if(!tenLop || isNaN(colTen) || isNaN(colSdt)) {
-            return alert("Vui lòng nhập Tên lớp và số thứ tự cột (ví dụ: 1 và 5)");
+            return alert("Vui lòng nhập Tên lớp và Chữ cái cột (ví dụ: A và E)");
         }
 
         let lines = rawText.split('\n');
