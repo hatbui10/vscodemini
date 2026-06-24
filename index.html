@@ -19,7 +19,7 @@
 <body>
 
 <div class="container">
-    <h2 style="text-align:center">Tạo Dữ liệu Lớp</h2>
+    <h2 style="text-align:center">Tạo Dữ liệu Lớp (Tên & SĐT)</h2>
     
     <div class="row">
         <select id="tenLop">
@@ -71,7 +71,6 @@
             <option value=" IELTS 3/26"> IELTS 3/26</option>
             <option value="L12-BLUE">L12-BLUE</option>
             <option value="E1A - L12/ Lê Thu Hà">E1A - L12/ Lê Thu Hà</option>
-            
         </select>
         
         <select id="thuHoc">
@@ -85,37 +84,13 @@
         </select>
     </div>
     
-    <div class="row">
-        <select id="soLopHs">
-            <option value="Lớp 1"><= 6 tuổi</option>
-            <option value="Lớp 2">Lớp 1+2</option>
-            <option value="Lớp 2">Lớp 2+3</option>
-            <option value="Lớp 3">Lớp 3</option>
-            <option value="Lớp 3">Lớp 3+4</option>
-            <option value="Lớp 4">Lớp 4</option>
-            <option value="Lớp 4">Lớp 4+5</option>
-            <option value="Lớp 5">Lớp 5</option>
-            <option value="Lớp 5">Lớp 5+6</option>
-            <option value="Lớp 6">Lớp 6</option>
-            <option value="Lớp 7">Lớp 7</option>
-            <option value="Lớp 8">Lớp 8</option>
-            <option value="Lớp 9">Lớp 9</option>
-            <option value="Lớp 10">Lớp 10</option>
-            <option value="Lớp 11">Lớp 11</option>
-            <option value="Lớp 12" selected>Lớp 12</option>
-            <option value="Đại học">Đại học</option>
-        </select>
-        
-        <input type="text" id="hocPhiMacDinh" placeholder="Học phí (VD: 600.000)">
-    </div>
-    
     <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 10px; margin-top: 10px;">
-        <h4 style="margin-top:0">Thêm hàng loạt từ Excel:</h4>
-        <textarea id="bulkInput" rows="3" placeholder="Dán dữ liệu từ Excel vào đây..."></textarea>
+        <h4 style="margin-top:0">Thêm hàng loạt từ Excel (Cột Tên & Cột SĐT):</h4>
+        <textarea id="bulkInput" rows="5" placeholder="Dán dữ liệu từ Excel vào đây..."></textarea>
         <button class="btn-bulk" onclick="themHangLoat()">📥 Thêm từ Excel</button>
     </div>
 
-    <h3>Kết quả định dạng:</h3>
+    <h3>Kết quả định dạng sạch:</h3>
     <pre id="jsonOutput">// Dữ liệu sẽ xuất hiện tại đây...</pre>
     <button class="btn-copy" onclick="copyJson()">📋 Copy định dạng sạch</button>
 </div>
@@ -125,8 +100,6 @@
         let rawText = document.getElementById('bulkInput').value.trim();
         let tenLopChinh = document.getElementById('tenLop').value;
         let thuHoc = document.getElementById('thuHoc').value;
-        let soLopHs = document.getElementById('soLopHs').value;
-        let hocPhiMacDinh = document.getElementById('hocPhiMacDinh').value.trim() || "0";
         
         if(!rawText) return alert("Vui lòng dán dữ liệu từ Excel!");
 
@@ -145,21 +118,19 @@
             if(ten && sdt.length >= 8) {
                 danhSachHs.push({ 
                     ten: ten, 
-                    lop: soLopHs, 
-                    sdt: sdt, 
-                    hocPhi: hocPhiMacDinh
+                    sdt: sdt
                 });
             }
         });
 
-        // Tạo chuỗi Object
+        // Tạo chuỗi Object thu gọn hoàn toàn (Chỉ còn ten và sdt)
         let output = "{\n";
         output += `    tenLop: "${tenLopChinh}",\n`;
         output += `    thu: "${thuHoc}",\n`;
         output += `    hocSinh: [\n`;
         
         let hsLines = danhSachHs.map(hs => {
-            return `        { ten: "${hs.ten}", lop: "${hs.lop}", sdt: "${hs.sdt}", hocPhi: "${hs.hocPhi}", ghiChu: "", isXinNghi: false, isDiHocTiep: false, timeXinNghi: null, buoiVangData: [] }`;
+            return `        { ten: "${hs.ten}", sdt: "${hs.sdt}" }`;
         });
         
         output += hsLines.join(",\n");
