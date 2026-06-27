@@ -27,19 +27,20 @@
     
     <div class="form-group">
         <label>1. Nhập Tên Thứ hiển thị (Ví dụ: THỨ 2, THỨ 5, THỨ 7...):</label>
-        <input type="text" id="dayText" value="THỨ 3" oninput="syncAllIDs()">
-        <span class="preview-slug">👉 Mã ID Ngày tương ứng: <strong id="dayIdPreview">thu-3</strong></span>
+        <input type="text" id="dayText" value="THỨ 5" oninput="syncAllIDs()">
+        <span class="preview-slug">👉 Mã ID Ngày tương ứng: <strong id="dayIdPreview">thu-5</strong></span>
     </div>
 
     <div class="form-group">
         <label>2. Thông tin Phiên học & Thời gian:</label>
-        <input type="text" id="timeText" value="18:00 — PHIÊN HỌC" oninput="syncAllIDs()">
-        <span class="preview-slug">👉 Mã ID Thời gian tự sinh: <strong id="timeIdPreview">t1800_thu-3</strong></span>
+        <input type="text" id="timeText" value="18:30 — PHIÊN HỌC" oninput="syncAllIDs()">
+        <span class="preview-slug">👉 Mã ID Thời gian tự sinh: <strong id="timeIdPreview">t1830_thu-5</strong></span>
     </div>
 
     <div class="form-group">
         <label>3. Chọn Tên Lớp Học (Hệ thống tự nhận diện mã chữ):</label>
         <select id="classDropdown" onchange="syncAllIDs()">
+            <option value="APOLLO_L5_YEN" data-name="APOLLO L5 - Yến">APOLLO L5 - Yến</option>
             <option value="APOLLO_L6_NAM" data-name="APOLLO L6 - Nam">APOLLO L6 - Nam</option>
             <option value="class1" data-name="LỚP A1">LỚP A1</option>
             <option value="class2" data-name="LỚP A2">LỚP A2</option>
@@ -55,7 +56,6 @@
             <option value="KING_L4_THUPHUONG" data-name="KING - L4/Thu Phương">KING - L4/Thu Phương</option>
             <option value="GALAXY_L4_MINHPHUONG" data-name="GALAXY - L4/Minh Phương">GALAXY - L4/Minh Phương</option>
             <option value="KIND_L5_TAN" data-name="KIND L5 - Tân">KIND L5 - Tân</option>
-            <option value="APOLLO_L5_YEN" data-name="APOLLO L5 - Yến">APOLLO L5 - Yến</option>
             <option value="LIKE_L5_THUPHUONG" data-name="LIKE L5-Thu Phương">LIKE L5-Thu Phương</option>
             <option value="SMILE_L6_HAAN" data-name="SMILE-L6-Hà An">SMILE-L6-Hà An</option>
             <option value="STAR_L6_THANHTHAO" data-name="STAR-L6-Thanh Thảo">STAR-L6-Thanh Thảo</option>
@@ -92,7 +92,7 @@
             <option value="L12_BLUE" data-name="L12-BLUE">L12-BLUE</option>
             <option value="E1A_L12_LETHUHA" data-name="E1A - L12/ Lê Thu Hà">E1A - L12/ Lê Thu Hà</option>
         </select>
-        <span class="preview-slug">👉 Mã ID Lớp đang chọn: <strong id="classIdPreview">SVIP</strong></span>
+        <span class="preview-slug">👉 Mã ID Lớp đang chọn: <strong id="classIdPreview">APOLLO_L5_YEN</strong></span>
     </div>
 
     <div class="form-group">
@@ -150,10 +150,15 @@ function syncAllIDs() {
 }
 
 function generateMarkup() {
+    const dayText = document.getElementById('dayText').value.trim();
+    const timeText = document.getElementById('timeText').value.trim();
     const classSelect = document.getElementById('classDropdown');
     const classId = classSelect.value; 
-    let classDisplayName = classSelect.options[classSelect.selectedIndex].getAttribute('data-name');
     
+    const dayId = convertToSlug(dayText);
+    const timeId = convertTimeToId(timeText, dayId);
+    
+    let classDisplayName = classSelect.options[classSelect.selectedIndex].getAttribute('data-name');
     if(classId === "SVIP") {
         classDisplayName = "LỚP SVIP";
     }
@@ -170,11 +175,9 @@ function generateMarkup() {
             let name = info[0] ? info[0].trim() : "Chưa nhập tên";
             let phone = info[1] ? info[1].trim() : "";
             
-            // Đồng bộ định dạng số điện thoại hiển thị và thẻ gọi điện
             let cleanPhone = phone.replace(/\s/g, '');
             let sid = `st_${classId}_${currentStNum}`;
 
-            // SỬA ĐỔI: Khớp chính xác thuộc tính onclick, tel, text, thẻ select, data-name của lớp mẫu đề ra
             studentsHTML += `            <div class="student-card" id="${sid}">
                 <div>${displayIndex}. ${name}\t${phone}</div>
                 <div class="btn-group">
@@ -201,8 +204,13 @@ function generateMarkup() {
         studentsHTML = `            \n`;
     }
 
-    // SỬA ĐỔI: Chỉ xuất ra đúng cụm danh mục chứa danh sách lớp và danh sách vắng độc lập theo mẫu
-    const finalHTML = `<div class="class-btn" onclick="toggle('list-${classId}')">${classDisplayName} <span id="count-${classId}" style="color:#fbbf24;">(0/0)</span> ▼</div>
+    // CẤU TRÚC ĐÃ ĐƯỢC SỬA ĐỔI: Bọc đầy đủ theo Thứ -> Phiên Học -> Lớp Học
+    const finalHTML = `<div class="main-btn" onclick="toggle('${dayId}')">► ${dayText.toUpperCase()}</div>
+<div id="${dayId}" class="section">
+    <div class="time-btn" onclick="toggle('${timeId}')">${timeText}</div>
+    <div id="${timeId}" class="section">
+        
+        <div class="class-btn" onclick="toggle('list-${classId}')">${classDisplayName} <span id="count-${classId}" style="color:#fbbf24;">(0/0)</span> ▼</div>
         <div id="list-${classId}" class="section" data-id="${classId}" data-name="${classDisplayName}">
             
 ${studentsHTML}
@@ -210,7 +218,10 @@ ${studentsHTML}
                 <div class="class-absent-list" id="absent-${classId}">Danh sách vắng:<br>Không có</div>
                 <button class="btn-copy" onclick="copyAbsentList('${classId}')">📋 Copy DS Vắng</button>
             </div>
-        </div>`;
+        </div>
+
+    </div>
+</div>`;
 
     document.getElementById('codeResult').innerText = finalHTML;
     document.getElementById('outputArea').style.display = 'block';
