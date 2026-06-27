@@ -185,9 +185,9 @@ function generateMarkup() {
 
     lines.forEach(line => {
         if(line.trim() !== "") {
-            let info = line.split('-');
+            let info = line.split(/\t|-|\s{2,}/);
             let name = info[0] ? info[0].trim() : "Chưa nhập tên";
-            let phone = info[1] ? info[1].trim() : "";
+            let phone ="";
             
             let cleanPhone = phone.replace(/\s/g, '');
             let sid = `st_${classId}_${currentStNum}`;
