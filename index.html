@@ -2,150 +2,254 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Công Cụ Sinh Code Dữ Liệu Học Sinh</title>
+    <title>Quản Lý Lớp Học</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 20px;
+        body { 
+            background-color: #f0f2f5; 
+            font-family: 'Segoe UI', Tahoma, sans-serif; 
+            margin-top: 30px; 
+            margin-left: 3px; 
+            margin-right: 3px; 
             color: #333;
         }
-        .converter-container {
-            max-width: 700px;
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        h2 { text-align: center; color: #007bff; margin-top: 0; }
-        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-family: inherit;
-        }
-        textarea { resize: vertical; }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1em;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: 0.2s;
-        }
-        button:hover { background: #218838; }
-        .result-box {
-            position: relative;
-            margin-top: 20px;
-        }
-        #outputCode {
-            background: #272822;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 6px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9em;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .btn-copy {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            cursor: pointer;
-            width: auto;
-            margin: 0;
-        }
-        .btn-copy:hover { background: #0056b3; }
-        .hint { font-size: 0.85em; color: #666; font-style: italic; }
+        .container { max-width: 500px; margin: auto; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 25px; border: 1px solid #ddd; outline: none; transition: 0.3s; }
+        button { background: #007bff; color: white; font-weight: bold; cursor: pointer; border: none; }
+        button:hover { background: #0056b3; }
+        
+        .info-box { margin-top: 20px; padding: 15px; border: 1px solid #eee; border-radius: 15px; cursor: pointer; background: #fafafa; }
+        
+        /* Tiêu đề dòng trên cùng */
+        .box-title { font-weight: bold; font-size: 1.1em; color: #007bff; border-bottom: 2px solid #007bff; padding-bottom: 5px; margin-bottom: 10px; }
+        
+        /* Khu vực danh sách vắng ở trên */
+        .absent-section { background: #fff5f5; border: 1px dashed #e53e3e; border-radius: 10px; padding: 10px; margin-bottom: 15px; }
+        .absent-section h4 { margin: 0 0 8px 0; color: #e53e3e; font-size: 0.95em; }
+        
+        /* Cấu trúc 2 DÒNG của danh sách vắng (Họ tên - Chữ lý do + Nút gọi) */
+        .absent-item { display: flex; flex-direction: column; padding: 8px 5px; border-bottom: 1px dashed #fecaca; gap: 4px; }
+        .absent-item:last-child { border-bottom: none; }
+        
+        /* Dòng 2 danh sách vắng */
+        .absent-row2 { display: flex; justify-content: space-between; align-items: center; }
+        .absent-reason { color: #c53030; font-size: 0.9em; font-style: italic; font-weight: 500; }
+        .absent-row2 a { text-decoration: none; }
+        .btn-goi-small { width: auto; padding: 5px 15px; margin: 0; font-size: 0.8em; border-radius: 8px; background: #28a745; text-align: center; }
+
+        /* Cấu trúc từng hàng dọc cho học sinh danh sách chính */
+        .student-item { display: flex; flex-direction: column; padding: 12px 5px; border-bottom: 1px solid #eee; gap: 8px; transition: background 0.2s; }
+        
+        /* Dòng 1: Họ tên chính */
+        .student-info { font-weight: 600; font-size: 1.05em; color: #222; }
+        .student-info small { font-weight: normal; color: #666; margin-left: 10px; }
+        
+        /* Dòng 2: Các nút bấm chính */
+        .student-actions { display: flex; gap: 5px; }
+        .btn-action { width: auto; flex: 1; padding: 8px; font-size: 0.85em; margin: 0; border-radius: 8px; }
+        .btn-goi { background: #28a745; text-align: center; }
+        .btn-goi:hover { background: #218838; }
+        .student-actions a { flex: 1; text-decoration: none; }
+        
+        /* Dòng 3: Dropdown ghi chú chính */
+        .student-note { width: 100%; padding: 6px 12px; margin: 0; border-radius: 8px; font-size: 0.9em; background-color: #fff; }
+        
+        /* Trạng thái vắng của học sinh trong danh sách chính */
+        .student-item.absent { background-color: #ffe6e6; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-<div class="converter-container">
-    <h2>🛠️ TOOL SINH CODE DỮ LIỆU</h2>
+<div class="container">
+    <select id="caHoc"><option>Ca 1 (Sáng)</option><option>Ca 2 (Chiều)</option></select>
     
-    <label for="maLop">Mã lớp (Ví dụ: 12A1, 12B2):</label>
-    <input type="text" id="maLop" value="12A1" placeholder="Nhập mã lớp để gom nhóm...">
-
-    <label for="inputData">Dán danh sách học sinh vào đây:</label>
-    <p class="hint">Hỗ trợ định dạng Sao chép từ Excel hoặc Zalo dạng: "Tên_Học_Sinh [Khoảng_Trắng/Tab] Số_Điện_Thoại"</p>
-    <textarea id="inputData" rows="10" placeholder="Nguyễn An Nhiên (Bơ)   039 696 3955&#10;Nguyễn Trung Đức (Bon)  033 980 4981"></textarea>
-
-    <button onclick="chuyenDoiDuLieu()">BẤM ĐỂ SINH CODE JS</button>
-
-    <div class="result-box">
-        <label>Đoạn code kết quả:</label>
-        <button class="btn-copy" onclick="copyCode()">Copy Code</button>
-        <pre id="outputCode">// Code sinh ra sẽ nằm ở đây...</pre>
-    </div>
+    <select id="tenLop">
+        <option value="12A1">Lớp 12A1</option>
+        <option value="12B2">Lớp 12B2</option>
+    </select>
+    
+    <select id="phongHoc"><option>Phòng 101</option><option>Phòng 102</option></select>
+    <button onclick="taoHop()">XÁC NHẬN</button>
+    <div id="danhSachHop"></div>
 </div>
 
 <script>
-    function chuyenDoiDuLieu() {
-        const maLop = document.getElementById('maLop').value.trim() || "TEN_LOP";
-        const rawText = document.getElementById('inputData').value;
-        const lines = rawText.split('\n');
+    // Dữ liệu học sinh được chia theo Tên Lớp (Key của Object)
+    const dataHocSinh = {
+    "12A1": [
+        { id: "hs_12A1_01", ten: "Nguyễn An Nhiên (Bơ)", sdt: "0396963955" },
+        { id: "hs_12A1_02", ten: "Nguyễn Trung Đức (Bon)", sdt: "0339804981" },
+        { id: "hs_12A1_03", ten: "Đặng Đình Bách", sdt: "0904511462" },
+        { id: "hs_12A1_04", ten: "Lâm Duy Anh", sdt: "0902239258" },
+        { id: "hs_12A1_05", ten: "Vũ Nguyễn Hải Anh 23/11/20", sdt: "0336076895" },
+        { id: "hs_12A1_06", ten: "Lan Anh em Tuấn Anh B", sdt: "KhôngcóSĐT" },
+        { id: "hs_12A1_07", ten: "Đặng Khánh Ngân", sdt: "0942093566" },
+        { id: "hs_12A1_08", ten: "Trần Lê Tuệ Linh", sdt: "0988742202" },
+        { id: "hs_12A1_09", ten: "Nguyễn Trâm Anh", sdt: "0919403848" },
+        { id: "hs_12A1_10", ten: "Nguyễn Tú Anh", sdt: "0919403848" },
+        { id: "hs_12A1_11", ten: "Nguyễn Hà My", sdt: "0943681990" },
+        { id: "hs_12A1_12", ten: "Hoàng Ngọc Phương Linh", sdt: "0912731673" }
+    ]
+};
+    
+    // Đối tượng lưu trữ trạng thái [boxId][studentId] = ghi_chu và [boxId]['lop'] = ten_lop
+    const danhSachVangData = {};
+
+    // Danh mục ghi chú nhanh
+    const ghiChuOptions = {
+        "": "Chưa chọn lý do",
+        "muon": "Đi muộn",
+        "phep": "Vắng có phép",
+        "kphep": "Vắng không phép",
+        "khac": "Lý do khác..."
+    };
+
+    function taoHop() {
+        const ca = document.getElementById('caHoc').value;
+        const lopKey = document.getElementById('tenLop').value;
+        const lopText = document.getElementById('tenLop').options[document.getElementById('tenLop').selectedIndex].text;
+        const phong = document.getElementById('phongHoc').value;
+        const container = document.getElementById('danhSachHop');
         
-        let resultArr = [];
-        let count = 1;
+        // Lấy danh sách học sinh thuộc lớp được chọn (nếu không có thì mặc định mảng rỗng)
+        const danhSachHocSinhCuaLop = dataHocSinh[lopKey] || [];
 
-        lines.forEach(line => {
-            if(!line.trim()) return; // Bỏ qua dòng trống
+        const boxId = 'box_' + Date.now(); 
+        danhSachVangData[boxId] = {
+            _lopKey: lopKey // Lưu lại mã lớp để sau này danh sách vắng tìm đúng thông tin học sinh
+        }; 
 
-            // Tách tên và số điện thoại bằng dấu Tab hoặc khoảng trắng lớn (phù hợp khi copy từ Excel/Zalo)
-            let parts = line.split(/\t+/); 
-            if(parts.length < 2) {
-                // Thử tách bằng khoảng trắng nếu không có dấu Tab công nghiệp
-                parts = line.split(/ {2,}/);
+        const div = document.createElement('div');
+        div.className = 'info-box';
+        div.id = boxId;
+        
+        div.innerHTML = `
+            <div class="box-title">${ca} - ${lopText} - ${phong}</div>
+            <div class="list" style="display:none;">
+                <div class="absent-section" style="display: none;">
+                    <h4>DANH SÁCH VẮNG (<span class="absent-count">0</span>)</h4>
+                    <div class="absent-list"></div>
+                </div>
+                <div class="main-student-list"></div>
+            </div>
+        `;
+        
+        div.onclick = function(e) { 
+            if(e.target === this || e.target.className === 'box-title') {
+                const list = this.querySelector('.list');
+                list.style.display = list.style.display === 'none' ? 'block' : 'none';
+            }
+        };
+
+        const mainListDiv = div.querySelector('.main-student-list');
+        
+        danhSachHocSinhCuaLop.forEach(hs => {
+            const item = document.createElement('div');
+            item.className = 'student-item';
+            item.setAttribute('data-id', hs.id);
+            
+            let selectOptions = '';
+            for (let key in ghiChuOptions) {
+                const textHienThi = key === "" ? "-- Chọn ghi chú vắng --" : ghiChuOptions[key];
+                selectOptions += `<option value="${key}">${textHienThi}</option>`;
             }
 
-            let ten = parts[0] ? parts[0].trim() : "Chưa nhập tên";
-            let sdt = parts[1] ? parts[1].trim() : "Không có SĐT";
+            item.innerHTML = `
+                <div class="student-info">${hs.ten} <small>(${hs.sdt})</small></div>
+                
+                <div class="student-actions">
+                    <button class="btn-action" onclick="event.stopPropagation(); bieuDienVang('${boxId}', '${hs.id}', true)">Vắng</button>
+                    <button class="btn-action" onclick="event.stopPropagation(); bieuDienVang('${boxId}', '${hs.id}', false)">Đi học</button>
+                    <a href="tel:${hs.sdt}" onclick="event.stopPropagation();"><button class="btn-action btn-goi">Gọi</button></a>
+                </div>
 
-            // Làm sạch số điện thoại (bỏ khoảng trắng thừa nếu có)
-            sdt = sdt.replace(/\s+/g, '');
-
-            // Tạo mã ID tự động dạng chữ: hs_12A1_01, hs_12A1_02...
-            let prefixCount = count < 10 ? '0' + count : count;
-            let customId = `hs_${maLop}_${prefixCount}`;
-
-            resultArr.push(`        { id: "${customId}", ten: "${ten}", sdt: "${sdt}" }`);
-            count++;
+                <select class="student-note" onclick="event.stopPropagation();" onchange="capNhatGhiChu('${boxId}', '${hs.id}', this.value)">
+                    ${selectOptions}
+                </select>
+            `;
+            mainListDiv.appendChild(item);
         });
-
-        // Ghép thành chuỗi Object hoàn chỉnh
-        let finalCode = `const dataHocSinh = {\n    "${maLop}": [\n${resultArr.join(',\n')}\n    ]\n};`;
         
-        document.getElementById('outputCode').innerText = finalCode;
+        container.appendChild(div);
     }
 
-    function copyCode() {
-        const codeText = document.getElementById('outputCode').innerText;
-        navigator.clipboard.writeText(codeText).then(() => {
-            alert("Đã copy đoạn code thành công!");
-        }).catch(err => {
-            alert("Lỗi khi copy, bạn hãy bôi đen rồi copy thủ công nhé.");
+    // Hàm xử lý khi bấm nút "Vắng" hoặc "Đi học"
+    function bieuDienVang(boxId, studentId, isAbsent) {
+        const box = document.getElementById(boxId);
+        const studentRow = box.querySelector(`.student-item[data-id="${studentId}"]`);
+        const noteSelect = studentRow.querySelector('.student-note');
+
+        if (isAbsent) {
+            studentRow.classList.add('absent');
+            if (danhSachVangData[boxId][studentId] === undefined) {
+                danhSachVangData[boxId][studentId] = noteSelect.value || "";
+            }
+        } else {
+            studentRow.classList.remove('absent');
+            delete danhSachVangData[boxId][studentId];
+        }
+
+        taiLaiDanhSachVangGiaoDien(boxId);
+    }
+
+    // Hàm xử lý đồng bộ và thay đổi lý do tức thì khi chọn ở thẻ học sinh dưới
+    function capNhatGhiChu(boxId, studentId, value) {
+        const box = document.getElementById(boxId);
+        const studentRow = box.querySelector(`.student-item[data-id="${studentId}"]`);
+
+        if (studentRow && studentRow.classList.contains('absent')) {
+            danhSachVangData[boxId][studentId] = value;
+            taiLaiDanhSachVangGiaoDien(boxId);
+        }
+    }
+
+    // Hàm vẽ giao diện Danh sách vắng
+    function taiLaiDanhSachVangGiaoDien(boxId) {
+        const box = document.getElementById(boxId);
+        const absentSection = box.querySelector('.absent-section');
+        const absentListContainer = box.querySelector('.absent-list');
+        const absentCountSpan = box.querySelector('.absent-count');
+        
+        absentListContainer.innerHTML = ''; 
+        
+        const danhSachVangHienTai = danhSachVangData[boxId];
+        const lopKey = danhSachVangHienTai._lopKey;
+        const listHocSinhCuaLop = dataHocSinh[lopKey] || [];
+        
+        // Lấy danh sách ID học sinh đang vắng (bỏ đi thuộc tính ẩn _lopKey)
+        const cacStudentIdVang = Object.keys(danhSachVangHienTai).filter(k => !k.startsWith('_'));
+        
+        absentCountSpan.textContent = cacStudentIdVang.length;
+
+        if (cacStudentIdVang.length === 0) {
+            absentSection.style.display = 'none';
+            return;
+        }
+
+        absentSection.style.display = 'block';
+
+        cacStudentIdVang.forEach(studentId => {
+            // Tìm chính xác học sinh trong danh sách riêng của lớp này
+            const infoHs = listHocSinhCuaLop.find(h => h.id == studentId);
+            if(!infoHs) return;
+            
+            const maGhiChu = danhSachVangHienTai[studentId];
+            const textLyoDo = ghiChuOptions[maGhiChu] || "Chưa chọn lý do";
+
+            const divVang = document.createElement('div');
+            divVang.className = 'absent-item';
+            divVang.innerHTML = `
+                <div style="font-weight: 600; color: #c53030;">📌 ${infoHs.ten}</div>
+                
+                <div class="absent-row2">
+                    <span class="absent-reason">Lý do: ${textLyoDo}</span>
+                    <a href="tel:${infoHs.sdt}" onclick="event.stopPropagation();">
+                        <button class="btn-goi-small">Gọi</button>
+                    </a>
+                </div>
+            `;
+            absentListContainer.appendChild(divVang);
         });
     }
 </script>
-
 </body>
 </html>
