@@ -269,7 +269,7 @@
         #analyzer-view {
             display: none;
             width: 100%;
-            min-height: 150%;
+            min-height: 100%;
             background: #1e1e1e;
             color: #38bdf8;
             padding: 20px;
@@ -477,17 +477,20 @@
 
             // Các Tầng Động
             projectTiers.forEach(tier => {
-                const groupHeader = document.createElement('div');
-                groupHeader.className = 'folder-group-header';
-                groupHeader.innerHTML = `
-                    <span>📁 Tầng ${tier}</span>
-                    <div class="folder-actions-inline">
-                        <button onclick="event.stopPropagation(); addNewCss(${tier})" title="Thêm file CSS">➕ CSS</button>
-                        <button onclick="event.stopPropagation(); addNewModule(${tier})" title="Thêm module JS">➕ JS</button>
-                        <button onclick="event.stopPropagation(); deleteTier(${tier})" title="Xóa toàn bộ tầng này" style="color:#f87171;">🗑️</button>
-                    </div>
-                `;
-                fileListUI.appendChild(groupHeader);
+                let tierNames = { 1: "Cài đặt chung", 2: "Tính toán và xử lý" };
+let tierName = tierNames[tier] || "Hiển thị và bấm nút";
+
+const groupHeader = document.createElement('div');
+groupHeader.className = 'folder-group-header';
+groupHeader.innerHTML = `
+    <span>📁 Tầng ${tier}: ${tierName}</span>
+    <div class="folder-actions-inline">
+        <button onclick="event.stopPropagation(); addNewCss(${tier})" title="Thêm file CSS">➕ CSS</button>
+        <button onclick="event.stopPropagation(); addNewModule(${tier})" title="Thêm module JS">➕ JS</button>
+        <button onclick="event.stopPropagation(); deleteTier(${tier})" title="Xóa toàn bộ tầng này" style="color:#f87171;">🗑️</button>
+    </div>
+`;
+fileListUI.appendChild(groupHeader);
 
                 // Hiển thị tất cả file CSS thuộc tầng này
                 Object.keys(projectFiles).forEach(filename => {
