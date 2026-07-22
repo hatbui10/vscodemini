@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mini VS Code Mobile - Pro Edition</title>
+    <title>Mini VS Code Mobile - Quản Lý Tầng & Module</title>
     <style>
         :root {
             --bg-base: #1e1e1e;
@@ -76,8 +76,8 @@
             position: absolute;
             left: -100%;
             top: 0;
-            width: 80%;
-            max-width: 300px;
+            width: 88%;
+            max-width: 340px;
             height: 100%;
             background-color: var(--sidebar-bg);
             border-right: 1px solid var(--border-color);
@@ -92,7 +92,7 @@
         }
 
         .sidebar-header {
-            padding: 12px;
+            padding: 10px 12px;
             font-size: 0.8rem;
             text-transform: uppercase;
             font-weight: bold;
@@ -103,26 +103,97 @@
             align-items: center;
         }
 
+        .sidebar-toolbar {
+            padding: 8px 10px;
+            background: #222;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .sidebar-toolbar button {
+            background: #2a2d2e;
+            color: #d4d4d4;
+            border: 1px solid #454545;
+            padding: 4px 8px;
+            font-size: 0.7rem;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .sidebar-toolbar button:hover {
+            background: #37373d;
+        }
+
         .file-list {
             flex: 1;
             overflow-y: auto;
             list-style: none;
+            padding: 5px 0;
+        }
+
+        .folder-group-header {
+            padding: 8px 10px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #c586c0;
+            background: rgba(255,255,255,0.03);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .folder-actions-inline {
+            display: flex;
+            gap: 4px;
+        }
+
+        .folder-actions-inline button {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 2px 4px;
+        }
+        .folder-actions-inline button:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+            border-radius: 2px;
         }
 
         .file-item {
-            padding: 10px 14px;
-            font-size: 0.85rem;
+            padding: 7px 10px 7px 24px;
+            font-size: 0.78rem;
             cursor: pointer;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .file-item:hover {
+            background: rgba(255,255,255,0.03);
         }
 
         .file-item.active {
             background-color: #37373d;
             color: #ffffff;
             border-left: 3px solid var(--accent-color);
+        }
+
+        .file-delete-btn {
+            background: none;
+            border: none;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 2px 6px;
+            opacity: 0.6;
+        }
+        .file-item:hover .file-delete-btn {
+            opacity: 1;
         }
 
         .editor-container {
@@ -163,55 +234,50 @@
             flex: 1;
             display: flex;
             flex-direction: column;
-            overflow: auto; /* Tạo thanh cuộn tổng cho toàn vùng soạn thảo */
+            overflow-y: auto; 
+            position: relative;
         }
 
-        /* Tăng kích thước ô nhập code và cho phép cuộn ngang/dọc */
         textarea {
             width: 100%;
             min-height: 450px;
-            flex: 1;
             background-color: var(--bg-base);
             color: var(--text-color);
             border: none;
             padding: 16px;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 1rem; /* Tăng kích thước chữ cho dễ nhìn */
+            font-size: 0.95rem;
             resize: none;
             outline: none;
             line-height: 1.6;
             white-space: pre;
-            overflow-x: auto; /* Bật thanh cuộn ngang khi code dài */
+            overflow-x: auto;
         }
 
-        /* Thanh cuộn tùy chỉnh cho textarea và màn hình phân tích */
         textarea::-webkit-scrollbar, #analyzer-view::-webkit-scrollbar, .file-list::-webkit-scrollbar {
             width: 8px;
             height: 8px;
         }
         textarea::-webkit-scrollbar-thumb, #analyzer-view::-webkit-scrollbar-thumb, .file-list::-webkit-scrollbar-thumb {
-            background: #424242;
+            background: #555;
             border-radius: 4px;
         }
         textarea::-webkit-scrollbar-track, #analyzer-view::-webkit-scrollbar-track {
             background: #1e1e1e;
         }
 
-        /* Màn hình phân tích module với thanh cuộn hoàn chỉnh */
         #analyzer-view {
             display: none;
-            flex: 1;
             width: 100%;
-            min-height: 100%;
+            min-height: 150%;
             background: #1e1e1e;
             color: #38bdf8;
             padding: 20px;
             font-family: monospace;
-            font-size: 0.9rem;
-            overflow-y: auto; /* Bật thanh cuộn dọc */
-            overflow-x: auto; /* Bật thanh cuộn ngang nếu nội dung tràn */
+            font-size: 0.85rem;
+            overflow-y: auto; 
+            overflow-x: auto;
             line-height: 1.6;
-            white-space: nowrap; /* Giữ cấu trúc dòng không bị bẻ cụt xấu */
         }
 
         .preview-pane {
@@ -252,7 +318,7 @@
         .console-panel {
             background-color: #121212;
             border-top: 1px solid var(--border-color);
-            height: 100px;
+            height: 90px;
             display: flex;
             flex-direction: column;
         }
@@ -297,7 +363,7 @@
 <body>
 
     <header>
-        <button class="btn-action" onclick="toggleSidebar()">📁 File</button>
+        <button class="btn-action" onclick="toggleSidebar()">📁 Quản Lý Tầng</button>
         <span id="currentFileName" style="font-size: 0.75rem; color: #9cdcfe;">index.html</span>
         <div class="header-actions">
             <button class="btn-action" onclick="downloadProject()" title="Tải code về máy">📥 Tải</button>
@@ -310,8 +376,11 @@
 
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <span>📁 Quản Lý Dự Án</span>
+                <span>📁 Cấu Trúc Động</span>
                 <span onclick="toggleSidebar()" style="font-size:1.1rem; cursor:pointer;">✕</span>
+            </div>
+            <div class="sidebar-toolbar">
+                <button onclick="addNewTier()">➕ Thêm Tầng Mới</button>
             </div>
             <ul class="file-list" id="fileListUI"></ul>
         </div>
@@ -338,28 +407,29 @@
             <span>💻 Trạng Thái & Bắt Lỗi</span>
             <span style="cursor:pointer; color:#888;" onclick="document.getElementById('error-console').innerHTML='> Đã xóa log.'">🗑️ Xóa</span>
         </div>
-        <div id="error-console">> Đã cập nhật không gian mở rộng và thanh cuộn.</div>
+        <div id="error-console">> Đã sẵn sàng. Bạn có thể thêm/xóa tầng hoặc thêm/xóa module JS tùy ý.</div>
     </div>
 
     <script>
-        let projectFiles = JSON.parse(localStorage.getItem('my_project_files')) || {
+        // Cấu trúc danh sách các tầng hiện có (Lưu mảng số thứ tự tầng, ví dụ: [1, 2, 3])
+        let projectTiers = JSON.parse(localStorage.getItem('my_project_tiers')) || [1, 2, 3];
+        
+        let projectFiles = JSON.parse(localStorage.getItem('my_project_files_v4')) || {
             "index.html": { 
                 type: "html", 
-                content: '<div style="padding:15px; font-family:sans-serif;">\n    <h2>Dự Án Đang Chạy</h2>\n    <p id="status-text">Đang chờ module JS...</p>\n</div>' 
+                content: '<div style="padding:20px; font-family:sans-serif; text-align:center;">\n    <h2>Hệ Thống Động Đang Chạy</h2>\n    <p id="status-text" style="color:blue; margin-top:10px;">Đã nạp thành công các tầng!</p>\n</div>' 
             }
         };
 
-        for (let i = 1; i <= 10; i++) {
-            if (!projectFiles[`css/style${i}.css`]) {
-                projectFiles[`css/style${i}.css`] = { type: "css", content: `/* style${i}.css */\nbody { background: #0f172a; color: #fff; }` };
+        // Khởi tạo mặc định các file nếu chưa có cho các tầng
+        projectTiers.forEach(tier => {
+            if (!projectFiles[`css/tang${tier}/style.css`]) {
+                projectFiles[`css/tang${tier}/style.css`] = { type: "css", content: `/* CSS Tầng ${tier} */\n` };
             }
-        }
-
-        for (let i = 1; i <= 20; i++) {
-            if (!projectFiles[`js/module${i}.js`]) {
-                projectFiles[`js/module${i}.js`] = { type: "js", content: `// module${i}.js\nconsole.log("Module ${i} sẵn sàng.");\nif(${i}===1) document.getElementById("status-text").innerText="Tất cả module đã hoạt động!";` };
+            if (!projectFiles[`js/tang${tier}/module1.js`]) {
+                projectFiles[`js/tang${tier}/module1.js`] = { type: "js", content: `// JS Tầng ${tier} - Module 1\n` };
             }
-        }
+        });
 
         let currentActiveFile = "index.html";
         let openTabs = ["index.html"];
@@ -369,11 +439,16 @@
         codeEditor.addEventListener('input', (e) => {
             if (projectFiles[currentActiveFile]) {
                 projectFiles[currentActiveFile].content = e.target.value;
-                localStorage.setItem('my_project_files', JSON.stringify(projectFiles));
+                saveData();
             }
         });
 
-        function toggleSidebar() {
+        function saveData() {
+            localStorage.setItem('my_project_tiers', JSON.stringify(projectTiers));
+            localStorage.setItem('my_project_files_v4', JSON.stringify(projectFiles));
+        }
+
+        window.toggleSidebar = function() {
             document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('backdrop').classList.toggle('show');
         }
@@ -382,19 +457,136 @@
             const fileListUI = document.getElementById('fileListUI');
             fileListUI.innerHTML = '';
             
+            // Nút Báo Cáo
             const analyzeLi = document.createElement('li');
             analyzeLi.className = `file-item ${currentActiveFile === 'ANALYZE_TOOL' ? 'active' : ''}`;
-            analyzeLi.innerHTML = `📊 <span style="color:#38bdf8; font-weight:bold;">Phân Tích Mối Quan Hệ JS</span>`;
-            analyzeLi.onclick = () => { openAnalyzer(); toggleSidebar(); };
+            analyzeLi.innerHTML = `📊 <span style="color:#38bdf8; font-weight:bold;">Báo Cáo Tổng Hợp</span>`;
+            analyzeLi.onclick = () => { window.openAnalyzer(); window.toggleSidebar(); };
             fileListUI.appendChild(analyzeLi);
 
-            for (let filename in projectFiles) {
-                const li = document.createElement('li');
-                li.className = `file-item ${filename === currentActiveFile ? 'active' : ''}`;
-                let icon = filename.includes('.html') ? '🌐' : filename.includes('.css') ? '🎨' : '⚡';
-                li.innerHTML = `${icon} <span>${filename}</span>`;
-                li.onclick = () => { openFile(filename); toggleSidebar(); };
-                fileListUI.appendChild(li);
+            // Gốc Root
+            const rootHeader = document.createElement('div');
+            rootHeader.className = 'folder-group-header';
+            rootHeader.innerHTML = `<span>📁 Gốc (Root)</span>`;
+            fileListUI.appendChild(rootHeader);
+
+            const rootLi = document.createElement('li');
+            rootLi.className = `file-item ${'index.html' === currentActiveFile ? 'active' : ''}`;
+            rootLi.innerHTML = `🌐 <span>index.html</span>`;
+            rootLi.onclick = () => { window.openFile('index.html'); window.toggleSidebar(); };
+            fileListUI.appendChild(rootLi);
+
+            // Các Tầng Động
+            projectTiers.forEach(tier => {
+                const groupHeader = document.createElement('div');
+                groupHeader.className = 'folder-group-header';
+                groupHeader.innerHTML = `
+                    <span>📁 Tầng ${tier}</span>
+                    <div class="folder-actions-inline">
+                        <button onclick="event.stopPropagation(); addNewModule(${tier})" title="Thêm module JS">➕ JS</button>
+                        <button onclick="event.stopPropagation(); deleteTier(${tier})" title="Xóa toàn bộ tầng này" style="color:#f87171;">🗑️</button>
+                    </div>
+                `;
+                fileListUI.appendChild(groupHeader);
+
+                // File CSS của tầng
+                let cssKey = `css/tang${tier}/style.css`;
+                if (projectFiles[cssKey]) {
+                    const cssLi = document.createElement('li');
+                    cssLi.className = `file-item ${cssKey === currentActiveFile ? 'active' : ''}`;
+                    cssLi.innerHTML = `🎨 <span>style.css (Tầng ${tier})</span>`;
+                    cssLi.onclick = () => { window.openFile(cssKey); window.toggleSidebar(); };
+                    fileListUI.appendChild(cssLi);
+                }
+
+                // Các file JS thuộc tầng này
+                Object.keys(projectFiles).forEach(filename => {
+                    if (filename.startsWith(`js/tang${tier}/`)) {
+                        let moduleName = filename.split('/').pop();
+                        const jsLi = document.createElement('li');
+                        jsLi.className = `file-item ${filename === currentActiveFile ? 'active' : ''}`;
+                        jsLi.innerHTML = `
+                            <span onclick="window.openFile('${filename}'); window.toggleSidebar();">⚡ ${moduleName}</span>
+                            <button class="file-delete-btn" onclick="event.stopPropagation(); deleteModule('${filename}')" title="Xóa module này">✕</button>
+                        `;
+                        fileListUI.appendChild(jsLi);
+                    }
+                });
+            });
+        }
+
+        // --- TÍNH NĂNG THÊM / XÓA TẦNG VÀ MODULE ---
+        window.addNewTier = function() {
+            let newTier = projectTiers.length > 0 ? Math.max(...projectTiers) + 1 : 1;
+            projectTiers.push(newTier);
+            
+            // Tạo sẵn CSS và 1 Module JS cho tầng mới
+            projectFiles[`css/tang${newTier}/style.css`] = { type: "css", content: `/* CSS Tầng ${newTier} */\n` };
+            projectFiles[`js/tang${newTier}/module1.js`] = { type: "js", content: `// JS Tầng ${newTier} - Module 1\n` };
+            
+            saveData();
+            renderFileList();
+            document.getElementById('error-console.innerHTML') = `> Đã thêm Tầng ${newTier} thành công.`;
+        }
+
+        window.deleteTier = function(tier) {
+            if (projectTiers.length <= 1) {
+                alert("Cần giữ lại ít nhất 1 tầng!");
+                return;
+            }
+            if (confirm(`Bạn có chắc muốn xóa toàn bộ Tầng ${tier} (gồm cả CSS và các module JS trong tầng)?`)) {
+                // Xóa các file thuộc tầng này
+                delete projectFiles[`css/tang${tier}/style.css`];
+                Object.keys(projectFiles).forEach(filename => {
+                    if (filename.startsWith(`js/tang${tier}/`)) {
+                        delete projectFiles[filename];
+                        openTabs = openTabs.filter(t => t !== filename);
+                    }
+                });
+                projectTiers = projectTiers.filter(t => t !== tier);
+                
+                saveData();
+                if (!projectFiles[currentActiveFile]) {
+                    window.openFile("index.html");
+                } else {
+                    renderFileList();
+                }
+            }
+        }
+
+        window.addNewModule = function(tier) {
+            // Tìm số thứ tự module tiếp theo trong tầng
+            let existingModules = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`));
+            let nextIndex = existingModules.length + 1;
+            // Tìm số độc lập tránh trùng lặp nếu có module bị xóa giữa chừng
+            while(projectFiles[`js/tang${tier}/module${nextIndex}.js`]) {
+                nextIndex++;
+            }
+            
+            let newFileName = `js/tang${tier}/module${nextIndex}.js`;
+            projectFiles[newFileName] = { type: "js", content: `// JS Tầng ${tier} - Module ${nextIndex}\n` };
+            
+            saveData();
+            renderFileList();
+            window.openFile(newFileName);
+            window.toggleSidebar();
+        }
+
+        window.deleteModule = function(filename) {
+            let totalJsFiles = Object.keys(projectFiles).filter(f => f.startsWith('js/')).length;
+            if (totalJsFiles <= 1) {
+                alert("Cần giữ lại ít nhất 1 file JS trong hệ thống!");
+                return;
+            }
+            if (confirm(`Xóa module ${filename}?`)) {
+                delete projectFiles[filename];
+                openTabs = openTabs.filter(t => t !== filename);
+                saveData();
+                if (currentActiveFile === filename) {
+                    window.openFile("index.html");
+                } else {
+                    renderFileList();
+                }
             }
         }
 
@@ -404,77 +596,86 @@
             openTabs.forEach(filename => {
                 const tab = document.createElement('div');
                 tab.className = `tab ${filename === currentActiveFile ? 'active' : ''}`;
-                let displayName = filename === 'ANALYZE_TOOL' ? '📊 Phân Tích' : filename;
-                tab.innerHTML = `<span>${displayName}</span> <span onclick="event.stopPropagation(); closeTab('${filename}')" style="opacity:0.6">✕</span>`;
-                tab.onclick = () => filename === 'ANALYZE_TOOL' ? openAnalyzer() : switchFile(filename);
+                let displayName = filename === 'ANALYZE_TOOL' ? '📊 Phân Tích' : (filename.includes('/') ? filename.split('/').slice(-2).join('/') : filename);
+                tab.innerHTML = `<span>${displayName}</span> <span onclick="event.stopPropagation(); window.closeTab('${filename}')" style="opacity:0.6">✕</span>`;
+                tab.onclick = () => filename === 'ANALYZE_TOOL' ? window.openAnalyzer() : window.switchFile(filename);
                 tabsBarUI.appendChild(tab);
             });
         }
 
-        function openFile(filename) {
+        window.openFile = function(filename) {
             if (!openTabs.includes(filename)) openTabs.push(filename);
             currentActiveFile = filename;
             codeEditor.style.display = 'block';
             analyzerView.style.display = 'none';
-            codeEditor.value = projectFiles[filename].content;
+            codeEditor.value = projectFiles[filename] ? projectFiles[filename].content : '';
             document.getElementById('currentFileName').innerText = filename;
             renderFileList();
             renderTabs();
         }
 
-        function switchFile(filename) {
+        window.switchFile = function(filename) {
             currentActiveFile = filename;
             codeEditor.style.display = 'block';
             analyzerView.style.display = 'none';
-            codeEditor.value = projectFiles[filename].content;
+            codeEditor.value = projectFiles[filename] ? projectFiles[filename].content : '';
             document.getElementById('currentFileName').innerText = filename;
             renderFileList();
             renderTabs();
         }
 
-        function openAnalyzer() {
+        window.openAnalyzer = function() {
             currentActiveFile = 'ANALYZE_TOOL';
             if (!openTabs.includes('ANALYZE_TOOL')) openTabs.push('ANALYZE_TOOL');
             codeEditor.style.display = 'none';
             analyzerView.style.display = 'block';
-            document.getElementById('currentFileName').innerText = 'Phân Tích Module';
+            document.getElementById('currentFileName').innerText = 'Báo Cáo Tổng Hợp Tầng Động';
 
-            let report = "<h3>🔍 BÁO CÁO QUÉT MỐI QUAN HỆ 20 MODULE JS</h3><hr style='border-color:#444; margin:10px 0'>";
-            let totalFunctions = 0;
+            let report = "<h3>📊 THÔNG TIN HỆ THỐNG ĐỘNG</h3><hr style='border-color:#444; margin:10px 0'>";
+            report += `<b>Tổng số tầng đang hoạt động:</b> ${projectTiers.join(', ')}<br><br>`;
+            projectTiers.forEach(tier => {
+                let cssExist = projectFiles[`css/tang${tier}/style.css`] ? "Có" : "Không";
+                let jsCount = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`)).length;
+                report += `<b style='color:#eab308;'>🔹 Tầng ${tier}:</b> CSS: ${cssExist} | Số module JS: ${jsCount}<br>`;
+            });
 
-            for (let i = 1; i <= 20; i++) {
-                let code = projectFiles[`js/module${i}.js`].content;
-                let matches = code.match(/function\s+([a-zA-Z0-9_$]+)/g) || [];
-                totalFunctions += matches.length;
-                report += `<b>module${i}.js</b>: Tìm thấy ${matches.length} hàm (${matches.join(', ') || 'Không có hàm riêng'})<br>`;
-            }
-            report += `<hr style='border-color:#444; margin:10px 0'><b>Tổng kết:</b> Đã quét qua 20 module, phát hiện tổng cộng ${totalFunctions} hàm tương tác.`;
             analyzerView.innerHTML = report;
-
             renderFileList();
             renderTabs();
         }
 
-        function closeTab(filename) {
+        window.closeTab = function(filename) {
             openTabs = openTabs.filter(f => f !== filename);
             if (openTabs.length === 0) openTabs.push("index.html");
             if (currentActiveFile === filename) {
                 let next = openTabs[openTabs.length - 1];
-                next === 'ANALYZE_TOOL' ? openAnalyzer() : switchFile(next);
+                next === 'ANALYZE_TOOL' ? window.openAnalyzer() : window.switchFile(next);
             } else {
                 renderTabs();
             }
         }
 
-        function runProject() {
+        window.runProject = function() {
             const iframe = document.getElementById('preview-iframe');
             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
-            let finalHtml = projectFiles["index.html"].content;
+            let finalHtml = projectFiles["index.html"] ? projectFiles["index.html"].content : '';
+            
+            // Gom CSS tuần tự theo các tầng đang có
             let combinedCSS = "";
-            for (let i = 1; i <= 10; i++) combinedCSS += projectFiles[`css/style${i}.css`].content + "\n";
+            projectTiers.forEach(tier => {
+                let cssKey = `css/tang${tier}/style.css`;
+                if(projectFiles[cssKey]) combinedCSS += `/* Tầng ${tier} */\n` + projectFiles[cssKey].content + "\n";
+            });
+            
+            // Gom JS tuần tự theo các tầng và module
             let combinedJS = "";
-            for (let i = 1; i <= 20; i++) combinedJS += projectFiles[`js/module${i}.js`].content + "\n";
+            projectTiers.forEach(tier => {
+                let jsFiles = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`)).sort();
+                jsFiles.forEach(jsKey => {
+                    if(projectFiles[jsKey]) combinedJS += `/* Tầng ${tier} - ${jsKey} */\n` + projectFiles[jsKey].content + "\n";
+                });
+            });
 
             const fullOutput = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${combinedCSS}</style></head><body>${finalHtml}<script>window.onerror=function(m,u,l){window.parent.postMessage({type:'ERROR',message:m,line:l},'*');};try{${combinedJS}}catch(e){window.parent.postMessage({type:'ERROR',message:e.message},'*');}<\/script></body></html>`;
 
@@ -484,16 +685,25 @@
             document.getElementById('previewPane').classList.add('active');
         }
 
-        function closePreview() {
+        window.closePreview = function() {
             document.getElementById('previewPane').classList.remove('active');
         }
 
-        function downloadProject() {
-            let finalHtml = projectFiles["index.html"].content;
+        window.downloadProject = function() {
+            let finalHtml = projectFiles["index.html"] ? projectFiles["index.html"].content : '';
             let combinedCSS = "";
-            for (let i = 1; i <= 10; i++) combinedCSS += `/* style${i}.css */\n` + projectFiles[`css/style${i}.css`].content + "\n";
+            projectTiers.forEach(tier => {
+                let cssKey = `css/tang${tier}/style.css`;
+                if(projectFiles[cssKey]) combinedCSS += `/* CSS Tầng ${tier} */\n` + projectFiles[cssKey].content + "\n";
+            });
+            
             let combinedJS = "";
-            for (let i = 1; i <= 20; i++) combinedJS += `/* module${i}.js */\n` + projectFiles[`js/module${i}.js`].content + "\n";
+            projectTiers.forEach(tier => {
+                let jsFiles = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`)).sort();
+                jsFiles.forEach(jsKey => {
+                    if(projectFiles[jsKey]) combinedJS += `/* ${jsKey} */\n` + projectFiles[jsKey].content + "\n";
+                });
+            });
 
             let bundleContent = `<!DOCTYPE html>\n<html lang="vi">\n<head>\n<meta charset="UTF-8">\n<style>\n${combinedCSS}\n</style>\n</head>\n<body>\n${finalHtml}\n<script>\n${combinedJS}\n<\/script>\n</body>\n</html>`;
 
@@ -502,25 +712,10 @@
             a.href = URL.createObjectURL(blob);
             a.download = 'index.html';
             a.click();
-            logToConsole("Đã tạo file tổng hợp index.html sẵn sàng đẩy lên GitHub Pages!", "success");
-        }
-
-        window.addEventListener('message', (event) => {
-            if (event.data && event.data.type === 'ERROR') {
-                logToConsole(`[LỖI]: ${event.data.message} (Dòng: ${event.data.line || 'N/A'})`, "error");
-            }
-        });
-
-        function logToConsole(text, type = "normal") {
-            const consoleBox = document.getElementById('error-console');
-            let color = type === "error" ? "#ff5555" : type === "success" ? "#22c55e" : "#38bdf8";
-            consoleBox.innerHTML += `<br><span style="color: ${color};">> ${text}</span>`;
-            consoleBox.scrollTop = consoleBox.scrollHeight;
         }
 
         renderFileList();
-        openFile("index.html");
+        window.openFile("index.html");
     </script>
 </body>
-    </html>
-    
+</html>
