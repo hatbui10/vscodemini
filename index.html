@@ -2,201 +2,387 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <title>Công Cụ Sinh Code Dữ Liệu Học Sinh</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mini VS Code Mobile</title>
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f6f9;
-            margin: 0;
-            padding: 20px;
-            color: #333;
+        :root {
+            --bg-base: #1e1e1e;
+            --sidebar-bg: #252526;
+            --activity-bar: #333333;
+            --tab-bg: #2d2d2d;
+            --tab-active: #1e1e1e;
+            --text-color: #d4d4d4;
+            --accent-color: #007acc;
+            --border-color: #3f3f46;
         }
-        .converter-container {
-            max-width: 700px;
-            
-            margin: auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-        }
-        h2 { text-align: center; color: #007bff; margin-top: 0; }
-        label { font-weight: bold; display: block; margin-top: 15px; margin-bottom: 5px; }
-        input[type="text"], textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+
+        * {
             box-sizing: border-box;
-            font-family: inherit;
-        }
-        textarea { resize: vertical; }
-        button {
-            width: 100%;
-            padding: 12px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            font-weight: bold;
-            font-size: 1em;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: 0.2s;
-        }
-        button:hover { background: #218838; }
-        .result-box {
-            position: relative;
-            margin-top: 20px;
-        }
-        #outputCode {
-            background: #272822;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 6px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9em;
-            white-space: pre-wrap;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .btn-copy {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: #007bff;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            cursor: pointer;
-            width: auto;
             margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
-        .btn-copy:hover { background: #0056b3; }
-        .hint { font-size: 0.85em; color: #666; font-style: italic; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Thanh tiêu đề di động */
+        header {
+            background-color: var(--activity-bar);
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            background-color: #333;
+            color: white;
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .btn-run {
+            background-color: #2ea44f;
+            border: none;
+            font-weight: 600;
+        }
+
+        /* Workspace dạng dọc cho màn hình nhỏ */
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Menu chọn file (Drawer ẩn/hiện trên mobile) */
+        .sidebar {
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 80%;
+            max-width: 300px;
+            height: 100%;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transition: left 0.3s ease;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #969696;
+            background: #2d2d2d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            list-style: none;
+        }
+
+        .file-item {
+            padding: 10px 14px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .file-item.active {
+            background-color: #37373d;
+            color: #ffffff;
+            border-left: 3px solid var(--accent-color);
+        }
+
+        /* Vùng soạn thảo và xem trước */
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-base);
+            overflow: hidden;
+        }
+
+        .tabs-bar {
+            background-color: var(--sidebar-bg);
+            display: flex;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        .tab {
+            padding: 8px 14px;
+            font-size: 0.8rem;
+            background-color: var(--tab-bg);
+            border-right: 1px solid var(--border-color);
+            cursor: pointer;
+            color: #969696;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tab.active {
+            background-color: var(--tab-active);
+            color: #ffffff;
+            border-top: 2px solid var(--accent-color);
+        }
+
+        .editor-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        textarea {
+            flex: 1;
+            background-color: var(--bg-base);
+            color: var(--text-color);
+            border: none;
+            padding: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.95rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+        }
+
+        /* Màn hình Preview ẩn/hiện dạng Overlay */
+        .preview-pane {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+        }
+
+        .preview-pane.active {
+            display: flex;
+        }
+
+        .preview-header {
+            background-color: #f0f0f0;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #preview-iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 90;
+            display: none;
+        }
+        .backdrop.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
 
-<div class="converter-container">
-    <h2>🛠️ TOOL SINH CODE DỮ LIỆU</h2>
-    
-    <label for="maLop">Mã lớp (Ví dụ: 12A1, 12B2):</label>
-    
-    <select id="maLop">
-            <option value="SKY-KID">SKY-KID  T2-237</option>
-            <option value="CLOUD-KID">CLOUD-KID  T2-237</option>
-            <option value="12A1">12A1</option>
-            <option value="SMART-KID">SMART-KID  T2-237</option>
-            <option value="OZON-L2+3/Ngô Hằng">OZON-L2+3/Ngô Hằng T3-158</option>
-            <option value="MICKEY - L2+3/Thị Phương"> MICKEY - L2+3/Thị Phương T3-158   </option>
-            <option value="OXFORD  L4/Thu Phương">OXFORD  L4/Thu Phương </option>
-            <option value="QUEST L4 Thu Phương">QUEST L4 Thu Phương T3-158</option>
-            <option value="CAMBRIDGE - L4/Nhung">CAMBRIDGE - L4/Nhung  T4-158</option>
-            <option value="KING - L4/Thu Phương">KING - L4/Thu Phương</option>
-            <option value="GALAXY - L4/Minh Phương">GALAXY - L4/Minh Phương</option>
-            <option value="KIND L5 /Tân">KIND L5 /Tân</option>
-            <option value="APOLLO L5/Yến ">APOLLO L5/Yến </option>
-            <option value="LIKE L5/Thu Phương">LIKE L5/Thu Phương</option>
-            <option value="SMILE-L6/Hà An">SMILE-L6/Hà An</option>
-            <option value="STAR-L6/Thanh Thảo">STAR-L6/Thanh Thảo</option>
-            <option value="GOOD-L6/ Hà An ">GOOD-L6/ Hà An </option>
-            <option value="MARS - L6/Ngô Hằng">MARS - L6/Ngô Hằng</option>
-            <option value="PARIS-L6/Minh Phương">PARIS-L6/Minh Phương</option>
-            <option value="EVIC">EVIC</option>
-            <option value="KID E7">KID E7</option>
-            <option value="BOSS-VIP - L7/Lê Thu Hà">BOSS-VIP - L7/Lê Thu Hà</option>
-            <option value="MOON-L7/Trà My">MOON-L7/Trà My</option>
-            <option value="ILA-L7 - Thu Hà">ILA-L7 - Thu Hà</option>
-            <option value="DELTA-L7 - Phương">DELTA-L7 - Phương</option>
-            <option value="Happy - L8/Mai Ly">Happy - L8/Mai Ly</option>
-            <option value="Sun - L8/Mai Ly">Sun - L8/Mai Ly</option>
-            <option value="High - L8/Thu Hà">High - L8/Thu Hà</option>
-            <option value="HOPE-L8 TRÀ MY">HOPE-L8 TRÀ MY</option>
-            <option value="BIG-L9/Mai Ly">BIG-L9/Mai Ly</option>
-            <option value="SUPER - Thu Hà - L9">SUPER - Thu Hà - L9</option>
-            <option value="SEA - L9/Thu Hà">SEA - L9/Thu Hà</option>
-            <option value="CLC-L9/Thu Hà">CLC-L9/Thu Hà</option>
-            <option value="WIN - L10/Thu Hà">WIN - L10/Thu Hà</option>
-            <option value="SMART - L10/Hà An">SMART - L10/Hà An</option>
-            <option value="CLOUD - L10/Hà An">CLOUD - L10/Hà An</option>
-            <option value="TRY - L10/Thu Hà">TRY - L10/Thu Hà</option>
-            <option value="CAN - L11/Lê Thu Hà">CAN - L11/Lê Thu Hà</option>
-            <option value="VICTORYA">VICTORYA</option>
-            <option value="OCEAN-L11">OCEAN-L11</option>
-            <option value="ATHENA-L12/Mai Ly">ATHENA-L12/Mai Ly</option>
-            <option value="IELTS-WONDERFUL/Thu Hà">IELTS-WONDERFUL/Thu Hà</option>
-            <option value="SPACEX">SPACEX</option>
-            <option value="FUN - IE-L12/Lê Thu Hà">FUN - IE-L12/Lê Thu Hà</option>
-            <option value="L12-BLUE">L12-BLUE</option>
-            
-        </select>
+    <header>
+        <button class="btn-action" onclick="toggleSidebar()">📁 Danh Sách File</button>
+        <span id="currentFileName" style="font-size: 0.8rem; color: #9cdcfe;">index.html</span>
+        <div class="header-actions">
+            <button class="btn-action btn-run" onclick="runProject()">▶ Chạy</button>
+        </div>
+    </header>
 
-    <label for="inputData">Dán danh sách học sinh vào đây:</label>
-    <p class="hint">Hỗ trợ định dạng Sao chép từ Excel hoặc Zalo dạng: "Tên_Học_Sinh [Khoảng_Trắng/Tab] Số_Điện_Thoại"</p>
-    <textarea id="inputData" rows="10" placeholder="Nguyễn An Nhiên (Bơ)   039 696 3955&#10;Nguyễn Trung Đức (Bon)  033 980 4981"></textarea>
+    <div class="workspace">
+        <!-- Backdrop mờ khi mở menu file -->
+        <div class="backdrop" id="backdrop" onclick="toggleSidebar()"></div>
 
-    <button onclick="chuyenDoiDuLieu()">BẤM ĐỂ SINH CODE JS</button>
+        <!-- Sidebar danh sách file -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>📁 Explorer (33 Files)</span>
+                <span onclick="toggleSidebar()" style="font-size:1.1rem; padding:0 6px;">✕</span>
+            </div>
+            <ul class="file-list" id="fileListUI"></ul>
+        </div>
 
-    <div class="result-box">
-        <label>Đoạn code kết quả:</label>
-        <button class="btn-copy" onclick="copyCode()">Copy Code</button>
-        <pre id="outputCode">// Code sinh ra sẽ nằm ở đây...</pre>
+        <!-- Trình soạn thảo -->
+        <div class="editor-container">
+            <div class="tabs-bar" id="tabsBarUI"></div>
+            <div class="editor-pane">
+                <textarea id="codeEditor" placeholder="Chọn file từ nút 'Danh Sách File' để dán code..."></textarea>
+            </div>
+        </div>
+
+        <!-- Màn hình kết quả chạy trên di động -->
+        <div class="preview-pane" id="previewPane">
+            <div class="preview-header">
+                <span>🌐 Kết Quả Chạy Thực Tế</span>
+                <button class="btn-action" style="background:#333;" onclick="closePreview()">✕ Đóng</button>
+            </div>
+            <iframe id="preview-iframe"></iframe>
+        </div>
     </div>
-</div>
 
-<script>
-    function chuyenDoiDuLieu() {
-        const maLop = document.getElementById('maLop').value.trim() || "TEN_LOP";
-        const rawText = document.getElementById('inputData').value;
-        const lines = rawText.split('\n');
-        
-        let resultArr = [];
-        let count = 1;
+    <script>
+        const projectFiles = {
+            "index.html": { type: "html", content: '<div style="padding:15px; font-family:sans-serif;">\n    <h2>Ứng dụng Mobile</h2>\n    <p id="msg">Đang chờ module chạy...</p>\n</div>' },
+        };
 
-        lines.forEach(line => {
-            if(!line.trim()) return; // Bỏ qua dòng trống
+        for (let i = 1; i <= 10; i++) {
+            projectFiles[`css/style${i}.css`] = { 
+                type: "css", 
+                content: `/* style${i}.css */\nbody {\n    background-color: #0f172a;\n    color: #fff;\n}` 
+            };
+        }
 
-            // Tách tên và số điện thoại bằng dấu Tab hoặc khoảng trắng lớn (phù hợp khi copy từ Excel/Zalo)
-            let parts = line.split(/\t+/); 
-            if(parts.length < 2) {
-                // Thử tách bằng khoảng trắng nếu không có dấu Tab công nghiệp
-                parts = line.split(/ {2,}/);
+        for (let i = 1; i <= 20; i++) {
+            projectFiles[`js/module${i}.js`] = { 
+                type: "js", 
+                content: `// module${i}.js\nconsole.log("Module ${i} OK");\nif(${i}===1) document.getElementById("msg").innerText="Đã nạp thành công 30 module!";` 
+            };
+        }
+
+        let currentActiveFile = "index.html";
+        let openTabs = ["index.html"];
+
+        const codeEditor = document.getElementById('codeEditor');
+
+        codeEditor.addEventListener('input', (e) => {
+            if (projectFiles[currentActiveFile]) {
+                projectFiles[currentActiveFile].content = e.target.value;
             }
-
-            let ten = parts[0] ? parts[0].trim() : "Chưa nhập tên";
-            let sdt = parts[1] ? parts[1].trim() : "Không có SĐT";
-
-            // Làm sạch số điện thoại (bỏ khoảng trắng thừa nếu có)
-            sdt = sdt.replace(/\s+/g, '');
-
-            // Tạo mã ID tự động dạng chữ: hs_12A1_01, hs_12A1_02...
-            let prefixCount = count < 10 ? '0' + count : count;
-            let customId = `hs_${maLop}_${prefixCount}`;
-
-            resultArr.push(`        { id: "${customId}", ten: "${ten}", sdt: "${sdt}" }`);
-            count++;
         });
 
-        // Ghép thành chuỗi Object hoàn chỉnh
-        let finalCode = `const dataHocSinh = {\n    "${maLop}": [\n${resultArr.join(',\n')}\n    ]\n};`;
-        
-        document.getElementById('outputCode').innerText = finalCode;
-    }
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('backdrop').classList.toggle('show');
+        }
 
-    function copyCode() {
-        const codeText = document.getElementById('outputCode').innerText;
-        navigator.clipboard.writeText(codeText).then(() => {
-            alert("Đã copy đoạn code thành công!");
-        }).catch(err => {
-            alert("Lỗi khi copy, bạn hãy bôi đen rồi copy thủ công nhé.");
-        });
-    }
-</script>
+        function renderFileList() {
+            const fileListUI = document.getElementById('fileListUI');
+            fileListUI.innerHTML = '';
+            for (let filename in projectFiles) {
+                const li = document.createElement('li');
+                li.className = `file-item ${filename === currentActiveFile ? 'active' : ''}`;
+                let icon = filename.includes('.html') ? '🌐' : filename.includes('.css') ? '🎨' : '⚡';
+                li.innerHTML = `${icon} <span>${filename}</span>`;
+                li.onclick = () => { openFile(filename); toggleSidebar(); };
+                fileListUI.appendChild(li);
+            }
+        }
 
+        function renderTabs() {
+            const tabsBarUI = document.getElementById('tabsBarUI');
+            tabsBarUI.innerHTML = '';
+            openTabs.forEach(filename => {
+                const tab = document.createElement('div');
+                tab.className = `tab ${filename === currentActiveFile ? 'active' : ''}`;
+                tab.innerHTML = `<span>${filename}</span> <span onclick="event.stopPropagation(); closeTab('${filename}')" style="opacity:0.6">✕</span>`;
+                tab.onclick = () => switchFile(filename);
+                tabsBarUI.appendChild(tab);
+            });
+        }
+
+        function openFile(filename) {
+            if (!openTabs.includes(filename)) openTabs.push(filename);
+            currentActiveFile = filename;
+            codeEditor.value = projectFiles[filename].content;
+            document.getElementById('currentFileName').innerText = filename;
+            renderFileList();
+            renderTabs();
+        }
+
+        function switchFile(filename) {
+            currentActiveFile = filename;
+            codeEditor.value = projectFiles[filename].content;
+            document.getElementById('currentFileName').innerText = filename;
+            renderFileList();
+            renderTabs();
+        }
+
+        function closeTab(filename) {
+            openTabs = openTabs.filter(f => f !== filename);
+            if (openTabs.length === 0) openTabs.push("index.html");
+            if (currentActiveFile === filename) switchFile(openTabs[openTabs.length - 1]);
+            else renderTabs();
+        }
+
+        function runProject() {
+            const iframe = document.getElementById('preview-iframe');
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+
+            let finalHtml = projectFiles["index.html"].content;
+            let combinedCSS = "";
+            for (let i = 1; i <= 10; i++) combinedCSS += projectFiles[`css/style${i}.css`].content + "\n";
+            let combinedJS = "";
+            for (let i = 1; i <= 20; i++) combinedJS += projectFiles[`js/module${i}.js`].content + "\n";
+
+            const fullOutput = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${combinedCSS}</style></head><body>${finalHtml}<script>${combinedJS}<\/script></body></html>`;
+
+            iframeDoc.open();
+            iframeDoc.write(fullOutput);
+            iframeDoc.close();
+
+            document.getElementById('previewPane').classList.add('active');
+        }
+
+        function closePreview() {
+            document.getElementById('previewPane').classList.remove('active');
+        }
+
+        renderFileList();
+        openFile("index.html");
+    </script>
 </body>
 </html>
