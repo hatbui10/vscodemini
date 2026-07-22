@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mini VS Code Mobile</title>
+    <title>Mini VS Code Mobile - 30 Modules & Error Debugger</title>
     <style>
         :root {
             --bg-base: #1e1e1e;
@@ -46,7 +46,7 @@
 
         .header-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .btn-action {
@@ -65,7 +65,7 @@
             font-weight: 600;
         }
 
-        /* Workspace dạng dọc cho màn hình nhỏ */
+        /* Workspace dạng dọc */
         .workspace {
             display: flex;
             flex-direction: column;
@@ -74,7 +74,7 @@
             position: relative;
         }
 
-        /* Menu chọn file (Drawer ẩn/hiện trên mobile) */
+        /* Menu chọn file (Drawer) */
         .sidebar {
             position: absolute;
             left: -100%;
@@ -114,7 +114,7 @@
 
         .file-item {
             padding: 10px 14px;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -128,7 +128,7 @@
             border-left: 3px solid var(--accent-color);
         }
 
-        /* Vùng soạn thảo và xem trước */
+        /* Vùng soạn thảo */
         .editor-container {
             flex: 1;
             display: flex;
@@ -176,13 +176,13 @@
             border: none;
             padding: 12px;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             resize: none;
             outline: none;
             line-height: 1.5;
         }
 
-        /* Màn hình Preview ẩn/hiện dạng Overlay */
+        /* Màn hình Preview */
         .preview-pane {
             position: absolute;
             top: 0;
@@ -218,6 +218,37 @@
             height: 100%;
         }
 
+        /* Bảng Console Bắt Lỗi Nằm Dưới Cùng */
+        .console-panel {
+            background-color: #121212;
+            border-top: 1px solid var(--border-color);
+            height: 110px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .console-header {
+            background-color: #252526;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            color: #9cdcfe;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+        }
+
+        #error-console {
+            flex: 1;
+            background: #000;
+            color: #38bdf8;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 0.75rem;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+
         .backdrop {
             position: absolute;
             top: 0;
@@ -235,28 +266,28 @@
 </head>
 <body>
 
+    <!-- Header điều khiển -->
     <header>
         <button class="btn-action" onclick="toggleSidebar()">📁 Danh Sách File</button>
         <span id="currentFileName" style="font-size: 0.8rem; color: #9cdcfe;">index.html</span>
         <div class="header-actions">
-            <button class="btn-action btn-run" onclick="runProject()">▶ Chạy</button>
+            <button class="btn-action btn-run" onclick="runProject()">▶ Chạy Dự Án</button>
         </div>
     </header>
 
     <div class="workspace">
-        <!-- Backdrop mờ khi mở menu file -->
         <div class="backdrop" id="backdrop" onclick="toggleSidebar()"></div>
 
-        <!-- Sidebar danh sách file -->
+        <!-- Sidebar Danh Sách 33 Files -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <span>📁 Explorer (33 Files)</span>
-                <span onclick="toggleSidebar()" style="font-size:1.1rem; padding:0 6px;">✕</span>
+                <span onclick="toggleSidebar()" style="font-size:1.1rem; cursor:pointer;">✕</span>
             </div>
             <ul class="file-list" id="fileListUI"></ul>
         </div>
 
-        <!-- Trình soạn thảo -->
+        <!-- Trình soạn thảo Code -->
         <div class="editor-container">
             <div class="tabs-bar" id="tabsBarUI"></div>
             <div class="editor-pane">
@@ -264,40 +295,55 @@
             </div>
         </div>
 
-        <!-- Màn hình kết quả chạy trên di động -->
+        <!-- Màn hình kết quả xem trước (Preview) -->
         <div class="preview-pane" id="previewPane">
             <div class="preview-header">
-                <span>🌐 Kết Quả Chạy Thực Tế</span>
+                <span>🌐 Màn Hình Chạy Thực Tế</span>
                 <button class="btn-action" style="background:#333;" onclick="closePreview()">✕ Đóng</button>
             </div>
             <iframe id="preview-iframe"></iframe>
         </div>
     </div>
 
+    <!-- Bảng Console Bắt Lỗi Trực Tiếp -->
+    <div class="console-panel">
+        <div class="console-header">
+            <span>💻 Bảng Bắt Lỗi & Trạng Thái (Debugger)</span>
+            <span style="cursor:pointer; color:#888;" onclick="document.getElementById('error-console').innerHTML='> Đã xóa log.'">🗑️ Xóa log</span>
+        </div>
+        <div id="error-console">> Môi trường thử nghiệm 33 file đã sẵn sàng.</div>
+    </div>
+
     <script>
+        // Khởi tạo toàn bộ cấu trúc 33 file trong bộ nhớ ảo
         const projectFiles = {
-            "index.html": { type: "html", content: '<div style="padding:15px; font-family:sans-serif;">\n    <h2>Ứng dụng Mobile</h2>\n    <p id="msg">Đang chờ module chạy...</p>\n</div>' },
+            "index.html": { 
+                type: "html", 
+                content: '<div class="card-test">\n    <h3>Hệ Thống Đang Hoạt Động</h3>\n    <p id="status-text">Đang chờ module JavaScript chạy...</p>\n</div>' 
+            },
         };
 
+        // Tạo tự động 10 file CSS
         for (let i = 1; i <= 10; i++) {
             projectFiles[`css/style${i}.css`] = { 
                 type: "css", 
-                content: `/* style${i}.css */\nbody {\n    background-color: #0f172a;\n    color: #fff;\n}` 
+                content: `/* style${i}.css */\nbody {\n    background-color: #0f172a;\n    color: #f8fafc;\n    font-family: sans-serif;\n    padding: 15px;\n}\n.card-test {\n    background: #1e293b;\n    padding: 20px;\n    border-radius: 8px;\n    border: 1px solid #334155;\n}` 
             };
         }
 
+        // Tạo tự động 20 file JS
         for (let i = 1; i <= 20; i++) {
             projectFiles[`js/module${i}.js`] = { 
                 type: "js", 
-                content: `// module${i}.js\nconsole.log("Module ${i} OK");\nif(${i}===1) document.getElementById("msg").innerText="Đã nạp thành công 30 module!";` 
+                content: `// module${i}.js\nconsole.log("Module ${i} tải thành công.");\nif (${i} === 1) {\n    document.getElementById("status-text").innerText = "Tất cả 10 CSS và 20 JS đã nạp hoàn tất!";\n}` 
             };
         }
 
         let currentActiveFile = "index.html";
         let openTabs = ["index.html"];
-
         const codeEditor = document.getElementById('codeEditor');
 
+        // Lưu thay đổi khi gõ code
         codeEditor.addEventListener('input', (e) => {
             if (projectFiles[currentActiveFile]) {
                 projectFiles[currentActiveFile].content = e.target.value;
@@ -358,31 +404,80 @@
             else renderTabs();
         }
 
+        // Gom toàn bộ 10 file CSS và 20 file JS lại và chạy trong iframe kèm trình bắt lỗi
         function runProject() {
             const iframe = document.getElementById('preview-iframe');
             const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
 
             let finalHtml = projectFiles["index.html"].content;
+            
             let combinedCSS = "";
-            for (let i = 1; i <= 10; i++) combinedCSS += projectFiles[`css/style${i}.css`].content + "\n";
-            let combinedJS = "";
-            for (let i = 1; i <= 20; i++) combinedJS += projectFiles[`js/module${i}.js`].content + "\n";
+            for (let i = 1; i <= 10; i++) {
+                combinedCSS += `\n/* css/style${i}.css */\n` + projectFiles[`css/style${i}.css`].content;
+            }
 
-            const fullOutput = `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>${combinedCSS}</style></head><body>${finalHtml}<script>${combinedJS}<\/script></body></html>`;
+            let combinedJS = "";
+            for (let i = 1; i <= 20; i++) {
+                combinedJS += `\n/* js/module${i}.js */\n` + projectFiles[`js/module${i}.js`].content;
+            }
+
+            const fullOutput = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>${combinedCSS}</style>
+                </head>
+                <body>
+                    ${finalHtml}
+                    <script>
+                        // Bắt lỗi bên trong màn hình chạy và đẩy ra console chính
+                        window.onerror = function(msg, url, line) {
+                            window.parent.postMessage({type: 'ERROR', message: msg, line: line}, '*');
+                            return false;
+                        };
+                        try {
+                            ${combinedJS}
+                        } catch(err) {
+                            window.parent.postMessage({type: 'ERROR', message: err.message}, '*');
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `;
 
             iframeDoc.open();
             iframeDoc.write(fullOutput);
             iframeDoc.close();
 
             document.getElementById('previewPane').classList.add('active');
+            logToConsole("Đã biên dịch và chạy thành công 30 module!", "success");
         }
 
         function closePreview() {
             document.getElementById('previewPane').classList.remove('active');
         }
 
+        // Nhận log và lỗi từ khung chạy hiển thị trực tiếp ra bảng console giao diện
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'ERROR') {
+                logToConsole(`[LỖI SCRIPT]: ${event.data.message} (Dòng: ${event.data.line || 'N/A'})`, "error");
+            }
+        });
+
+        function logToConsole(text, type = "normal") {
+            const consoleBox = document.getElementById('error-console');
+            let color = "#38bdf8";
+            if (type === "error") color = "#ff5555";
+            if (type === "success") color = "#22c55e";
+            consoleBox.innerHTML += `<br><span style="color: ${color};">> ${text}</span>`;
+            consoleBox.scrollTop = consoleBox.scrollHeight;
+        }
+
+        // Khởi chạy giao diện ban đầu
         renderFileList();
         openFile("index.html");
     </script>
 </body>
-</html>
+    </html>
+    
