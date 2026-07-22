@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mini VS Code Mobile - Quản Lý Tầng & Module</title>
+    <title>Mini VS Code Mobile - Quản Lý Động CSS & JS</title>
     <style>
         :root {
             --bg-base: #1e1e1e;
@@ -240,7 +240,7 @@
 
         textarea {
             width: 100%;
-            min-height: 450px;
+            min-height: 150%;
             background-color: var(--bg-base);
             color: var(--text-color);
             border: none;
@@ -376,7 +376,7 @@
 
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <span>📁 Cấu Trúc Động</span>
+                <span>📁 Cấu Trúc CSS & JS</span>
                 <span onclick="toggleSidebar()" style="font-size:1.1rem; cursor:pointer;">✕</span>
             </div>
             <div class="sidebar-toolbar">
@@ -407,26 +407,25 @@
             <span>💻 Trạng Thái & Bắt Lỗi</span>
             <span style="cursor:pointer; color:#888;" onclick="document.getElementById('error-console').innerHTML='> Đã xóa log.'">🗑️ Xóa</span>
         </div>
-        <div id="error-console">> Đã sẵn sàng. Bạn có thể thêm/xóa tầng hoặc thêm/xóa module JS tùy ý.</div>
+        <div id="error-console">> Đã sẵn sàng. Bạn có thể thêm/xóa tùy ý cả file CSS và module JS cho từng tầng.</div>
     </div>
 
     <script>
-        // Cấu trúc danh sách các tầng hiện có (Lưu mảng số thứ tự tầng, ví dụ: [1, 2, 3])
-        let projectTiers = JSON.parse(localStorage.getItem('my_project_tiers')) || [1, 2, 3];
-        
-        let projectFiles = JSON.parse(localStorage.getItem('my_project_files_v4')) || {
+        let projectTiers = JSON.parse(localStorage.getItem('my_project_tiers_v5')) || [1, 2, 3];
+        let projectFiles = JSON.parse(localStorage.getItem('my_project_files_v5')) || {
             "index.html": { 
                 type: "html", 
-                content: '<div style="padding:20px; font-family:sans-serif; text-align:center;">\n    <h2>Hệ Thống Động Đang Chạy</h2>\n    <p id="status-text" style="color:blue; margin-top:10px;">Đã nạp thành công các tầng!</p>\n</div>' 
+                content: '<div style="padding:20px; font-family:sans-serif; text-align:center;">\n    <h2>Hệ Thống CSS & JS Động</h2>\n    <p id="status-text" style="color:blue; margin-top:10px;">Đã sẵn sàng hoạt động!</p>\n</div>' 
             }
         };
 
-        // Khởi tạo mặc định các file nếu chưa có cho các tầng
+        // Khởi tạo mặc định nếu chưa có file CSS hoặc JS cho các tầng
         projectTiers.forEach(tier => {
-            if (!projectFiles[`css/tang${tier}/style.css`]) {
-                projectFiles[`css/tang${tier}/style.css`] = { type: "css", content: `/* CSS Tầng ${tier} */\n` };
+            let defaultCssKey = `css/tang${tier}/style1.css`;
+            if (!Object.keys(projectFiles).some(f => f.startsWith(`css/tang${tier}/`))) {
+                projectFiles[defaultCssKey] = { type: "css", content: `/* CSS Tầng ${tier} - style1.css */\n` };
             }
-            if (!projectFiles[`js/tang${tier}/module1.js`]) {
+            if (!Object.keys(projectFiles).some(f => f.startsWith(`js/tang${tier}/`))) {
                 projectFiles[`js/tang${tier}/module1.js`] = { type: "js", content: `// JS Tầng ${tier} - Module 1\n` };
             }
         });
@@ -444,8 +443,8 @@
         });
 
         function saveData() {
-            localStorage.setItem('my_project_tiers', JSON.stringify(projectTiers));
-            localStorage.setItem('my_project_files_v4', JSON.stringify(projectFiles));
+            localStorage.setItem('my_project_tiers_v5', JSON.stringify(projectTiers));
+            localStorage.setItem('my_project_files_v5', JSON.stringify(projectFiles));
         }
 
         window.toggleSidebar = function() {
@@ -483,23 +482,28 @@
                 groupHeader.innerHTML = `
                     <span>📁 Tầng ${tier}</span>
                     <div class="folder-actions-inline">
+                        <button onclick="event.stopPropagation(); addNewCss(${tier})" title="Thêm file CSS">➕ CSS</button>
                         <button onclick="event.stopPropagation(); addNewModule(${tier})" title="Thêm module JS">➕ JS</button>
                         <button onclick="event.stopPropagation(); deleteTier(${tier})" title="Xóa toàn bộ tầng này" style="color:#f87171;">🗑️</button>
                     </div>
                 `;
                 fileListUI.appendChild(groupHeader);
 
-                // File CSS của tầng
-                let cssKey = `css/tang${tier}/style.css`;
-                if (projectFiles[cssKey]) {
-                    const cssLi = document.createElement('li');
-                    cssLi.className = `file-item ${cssKey === currentActiveFile ? 'active' : ''}`;
-                    cssLi.innerHTML = `🎨 <span>style.css (Tầng ${tier})</span>`;
-                    cssLi.onclick = () => { window.openFile(cssKey); window.toggleSidebar(); };
-                    fileListUI.appendChild(cssLi);
-                }
+                // Hiển thị tất cả file CSS thuộc tầng này
+                Object.keys(projectFiles).forEach(filename => {
+                    if (filename.startsWith(`css/tang${tier}/`)) {
+                        let cssName = filename.split('/').pop();
+                        const cssLi = document.createElement('li');
+                        cssLi.className = `file-item ${filename === currentActiveFile ? 'active' : ''}`;
+                        cssLi.innerHTML = `
+                            <span onclick="window.openFile('${filename}'); window.toggleSidebar();">🎨 ${cssName}</span>
+                            <button class="file-delete-btn" onclick="event.stopPropagation(); deleteCssFile('${filename}')" title="Xóa file CSS này">✕</button>
+                        `;
+                        fileListUI.appendChild(cssLi);
+                    }
+                });
 
-                // Các file JS thuộc tầng này
+                // Hiển thị tất cả file JS thuộc tầng này
                 Object.keys(projectFiles).forEach(filename => {
                     if (filename.startsWith(`js/tang${tier}/`)) {
                         let moduleName = filename.split('/').pop();
@@ -507,7 +511,7 @@
                         jsLi.className = `file-item ${filename === currentActiveFile ? 'active' : ''}`;
                         jsLi.innerHTML = `
                             <span onclick="window.openFile('${filename}'); window.toggleSidebar();">⚡ ${moduleName}</span>
-                            <button class="file-delete-btn" onclick="event.stopPropagation(); deleteModule('${filename}')" title="Xóa module này">✕</button>
+                            <button class="file-delete-btn" onclick="event.stopPropagation(); deleteModule('${filename}')" title="Xóa module JS này">✕</button>
                         `;
                         fileListUI.appendChild(jsLi);
                     }
@@ -515,18 +519,18 @@
             });
         }
 
-        // --- TÍNH NĂNG THÊM / XÓA TẦNG VÀ MODULE ---
+        // --- TÍNH NĂNG THÊM / XÓA TẦNG, CSS & MODULE JS ---
         window.addNewTier = function() {
             let newTier = projectTiers.length > 0 ? Math.max(...projectTiers) + 1 : 1;
             projectTiers.push(newTier);
             
-            // Tạo sẵn CSS và 1 Module JS cho tầng mới
-            projectFiles[`css/tang${newTier}/style.css`] = { type: "css", content: `/* CSS Tầng ${newTier} */\n` };
+            // Tạo sẵn 1 file CSS và 1 file JS cho tầng mới
+            projectFiles[`css/tang${newTier}/style1.css`] = { type: "css", content: `/* CSS Tầng ${newTier} */\n` };
             projectFiles[`js/tang${newTier}/module1.js`] = { type: "js", content: `// JS Tầng ${newTier} - Module 1\n` };
             
             saveData();
             renderFileList();
-            document.getElementById('error-console.innerHTML') = `> Đã thêm Tầng ${newTier} thành công.`;
+            document.getElementById('error-console').innerHTML = `> Đã thêm Tầng ${newTier} thành công.`;
         }
 
         window.deleteTier = function(tier) {
@@ -534,11 +538,10 @@
                 alert("Cần giữ lại ít nhất 1 tầng!");
                 return;
             }
-            if (confirm(`Bạn có chắc muốn xóa toàn bộ Tầng ${tier} (gồm cả CSS và các module JS trong tầng)?`)) {
-                // Xóa các file thuộc tầng này
-                delete projectFiles[`css/tang${tier}/style.css`];
+            if (confirm(`Bạn có chắc muốn xóa toàn bộ Tầng ${tier} (gồm cả các file CSS và JS trong tầng)?`)) {
+                // Xóa toàn bộ file CSS & JS thuộc tầng này
                 Object.keys(projectFiles).forEach(filename => {
-                    if (filename.startsWith(`js/tang${tier}/`)) {
+                    if (filename.startsWith(`css/tang${tier}/`) || filename.startsWith(`js/tang${tier}/`)) {
                         delete projectFiles[filename];
                         openTabs = openTabs.filter(t => t !== filename);
                     }
@@ -554,11 +557,43 @@
             }
         }
 
+        window.addNewCss = function(tier) {
+            let existingCss = Object.keys(projectFiles).filter(f => f.startsWith(`css/tang${tier}/`));
+            let nextIndex = existingCss.length + 1;
+            while(projectFiles[`css/tang${tier}/style${nextIndex}.css`]) {
+                nextIndex++;
+            }
+            
+            let newFileName = `css/tang${tier}/style${nextIndex}.css`;
+            projectFiles[newFileName] = { type: "css", content: `/* CSS Tầng ${tier} - style${nextIndex}.css */\n` };
+            
+            saveData();
+            renderFileList();
+            window.openFile(newFileName);
+            window.toggleSidebar();
+        }
+
+        window.deleteCssFile = function(filename) {
+            let totalCssFiles = Object.keys(projectFiles).filter(f => f.startsWith('css/')).length;
+            if (totalCssFiles <= 1) {
+                alert("Cần giữ lại ít nhất 1 file CSS trong hệ thống!");
+                return;
+            }
+            if (confirm(`Xóa file CSS ${filename}?`)) {
+                delete projectFiles[filename];
+                openTabs = openTabs.filter(t => t !== filename);
+                saveData();
+                if (currentActiveFile === filename) {
+                    window.openFile("index.html");
+                } else {
+                    renderFileList();
+                }
+            }
+        }
+
         window.addNewModule = function(tier) {
-            // Tìm số thứ tự module tiếp theo trong tầng
             let existingModules = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`));
             let nextIndex = existingModules.length + 1;
-            // Tìm số độc lập tránh trùng lặp nếu có module bị xóa giữa chừng
             while(projectFiles[`js/tang${tier}/module${nextIndex}.js`]) {
                 nextIndex++;
             }
@@ -634,9 +669,9 @@
             let report = "<h3>📊 THÔNG TIN HỆ THỐNG ĐỘNG</h3><hr style='border-color:#444; margin:10px 0'>";
             report += `<b>Tổng số tầng đang hoạt động:</b> ${projectTiers.join(', ')}<br><br>`;
             projectTiers.forEach(tier => {
-                let cssExist = projectFiles[`css/tang${tier}/style.css`] ? "Có" : "Không";
+                let cssCount = Object.keys(projectFiles).filter(f => f.startsWith(`css/tang${tier}/`)).length;
                 let jsCount = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`)).length;
-                report += `<b style='color:#eab308;'>🔹 Tầng ${tier}:</b> CSS: ${cssExist} | Số module JS: ${jsCount}<br>`;
+                report += `<b style='color:#eab308;'>🔹 Tầng ${tier}:</b> Số file CSS: ${cssCount} | Số module JS: ${jsCount}<br>`;
             });
 
             analyzerView.innerHTML = report;
@@ -661,14 +696,16 @@
 
             let finalHtml = projectFiles["index.html"] ? projectFiles["index.html"].content : '';
             
-            // Gom CSS tuần tự theo các tầng đang có
+            // Gom tất cả CSS theo thứ tự các tầng và file CSS bên trong
             let combinedCSS = "";
             projectTiers.forEach(tier => {
-                let cssKey = `css/tang${tier}/style.css`;
-                if(projectFiles[cssKey]) combinedCSS += `/* Tầng ${tier} */\n` + projectFiles[cssKey].content + "\n";
+                let cssFiles = Object.keys(projectFiles).filter(f => f.startsWith(`css/tang${tier}/`)).sort();
+                cssFiles.forEach(cssKey => {
+                    if(projectFiles[cssKey]) combinedCSS += `/* Tầng ${tier} - ${cssKey} */\n` + projectFiles[cssKey].content + "\n";
+                });
             });
             
-            // Gom JS tuần tự theo các tầng và module
+            // Gom tất cả JS theo thứ tự các tầng và module JS bên trong
             let combinedJS = "";
             projectTiers.forEach(tier => {
                 let jsFiles = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`)).sort();
@@ -693,8 +730,10 @@
             let finalHtml = projectFiles["index.html"] ? projectFiles["index.html"].content : '';
             let combinedCSS = "";
             projectTiers.forEach(tier => {
-                let cssKey = `css/tang${tier}/style.css`;
-                if(projectFiles[cssKey]) combinedCSS += `/* CSS Tầng ${tier} */\n` + projectFiles[cssKey].content + "\n";
+                let cssFiles = Object.keys(projectFiles).filter(f => f.startsWith(`css/tang${tier}/`)).sort();
+                cssFiles.forEach(cssKey => {
+                    if(projectFiles[cssKey]) combinedCSS += `/* ${cssKey} */\n` + projectFiles[cssKey].content + "\n";
+                });
             });
             
             let combinedJS = "";
