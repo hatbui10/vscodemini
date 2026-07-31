@@ -28,7 +28,7 @@
             background-color: var(--bg-base);
             color: var(--text-color);
             height: 100vh;
-            height: 100dvh; /* Chuẩn mới cho mobile tránh bị che bởi thanh địa chỉ */
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
@@ -142,7 +142,7 @@
         }
 
         .folder-group-header {
-            padding: 10px;
+            padding: 8px 10px;
             font-size: 0.75rem;
             font-weight: bold;
             color: #c586c0;
@@ -168,20 +168,30 @@
             border-radius: 3px;
         }
 
+        /* Thu nhỏ khoảng cách dọc và thêm hiệu ứng phát sáng khi rê chuột */
         .file-item {
-            padding: 10px 12px 10px 24px;
+            padding: 2px 8px;
             font-size: 0.82rem;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.02);
+            transition: all 0.2s ease;
+        }
+
+        .file-item:hover {
+            background-color: rgba(0, 122, 204, 0.15);
+            color: #ffffff;
+            text-shadow: 0 0 8px rgba(0, 122, 204, 0.8), 0 0 12px rgba(56, 189, 248, 0.6);
+            box-shadow: inset 2px 0 0 var(--accent-color);
         }
 
         .file-item.active {
             background-color: #37373d;
             color: #ffffff;
             border-left: 3px solid var(--accent-color);
+            text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
         }
 
         .file-delete-btn {
@@ -190,7 +200,12 @@
             color: #f87171;
             cursor: pointer;
             font-size: 0.85rem;
-            padding: 4px 8px;
+            padding: 2px 6px;
+            transition: text-shadow 0.2s ease;
+        }
+
+        .file-delete-btn:hover {
+            text-shadow: 0 0 8px rgba(248, 113, 113, 0.8);
         }
 
         /* Khu vực Soạn thảo code */
@@ -212,7 +227,7 @@
         }
 
         .tab {
-            padding: 10px 14px;
+            padding: 8px 12px;
             font-size: 0.78rem;
             background-color: var(--tab-bg);
             border-right: 1px solid var(--border-color);
@@ -237,7 +252,6 @@
             position: relative;
         }
 
-        /* Tối ưu bàn phím và khung nhập code trên mobile */
         textarea {
             width: 100%;
             height: 400px;
@@ -246,7 +260,7 @@
             border: none;
             padding: 12px;
             font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9rem; /* Tránh zoom tự động trên iOS khi font >= 16px nhưng vẫn dễ nhìn */
+            font-size: 0.9rem;
             resize: none;
             outline: none;
             line-height: 1.5;
@@ -488,7 +502,7 @@
                             const li = document.createElement('li');
                             li.className = `file-item ${filename === currentActiveFile ? 'active' : ''}`;
                             li.innerHTML = `
-                                <span onclick="window.openFile('${filename}'); window.toggleSidebar();">${icon} ${name}</span>
+                                <span style="flex:1;" onclick="window.openFile('${filename}'); window.toggleSidebar();">${icon} ${name}</span>
                                 <button class="file-delete-btn" onclick="event.stopPropagation(); deleteSpecificFile('${filename}', '${type}')">✕</button>
                             `;
                             fileListUI.appendChild(li);
