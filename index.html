@@ -60,6 +60,13 @@
             font-size: 0.75rem;
             font-weight: 500;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-action:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(0, 122, 204, 0.6), inset 0 0 4px rgba(0, 122, 204, 0.3);
+            transform: translateY(-1px);
         }
 
         .btn-run {
@@ -131,6 +138,13 @@
             border-radius: 4px;
             cursor: pointer;
             width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toolbar button:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(0, 122, 204, 0.6), inset 0 0 4px rgba(0, 122, 204, 0.3);
+            transform: translateY(-1px);
         }
 
         .file-list {
@@ -166,45 +180,57 @@
             cursor: pointer;
             padding: 3px 5px;
             border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .folder-actions-inline button:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(0, 122, 204, 0.6), inset 0 0 4px rgba(0, 122, 204, 0.3);
+            transform: translateY(-1px);
         }
 
         .file-item {
-            padding: 2px 8px;
+            padding: 4px 8px;
             font-size: 0.82rem;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid rgba(255,255,255,0.02);
-            transition: all 0.2s ease;
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
         }
 
         .file-item:hover {
             background-color: rgba(0, 122, 204, 0.15);
             color: #ffffff;
-            text-shadow: 0 0 8px rgba(0, 122, 204, 0.8), 0 0 12px rgba(56, 189, 248, 0.6);
-            box-shadow: inset 2px 0 0 var(--accent-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(0, 122, 204, 0.6), inset 0 0 4px rgba(0, 122, 204, 0.3);
+            transform: translateY(-1px);
         }
 
         .file-item.active {
             background-color: #37373d;
             color: #ffffff;
             border-left: 3px solid var(--accent-color);
-            text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+            border-color: var(--accent-color);
         }
 
         .file-delete-btn {
             background: none;
-            border: none;
+            border: 1px solid transparent;
             color: #f87171;
             cursor: pointer;
             font-size: 0.85rem;
             padding: 2px 6px;
-            transition: text-shadow 0.2s ease;
+            border-radius: 3px;
+            transition: all 0.3s ease;
         }
 
         .file-delete-btn:hover {
-            text-shadow: 0 0 8px rgba(248, 113, 113, 0.8);
+            border-color: #f87171;
+            box-shadow: 0 0 12px rgba(248, 113, 113, 0.6), inset 0 0 4px rgba(248, 113, 113, 0.3);
+            transform: translateY(-1px);
         }
 
         .editor-container {
@@ -229,11 +255,19 @@
             font-size: 0.78rem;
             background-color: var(--tab-bg);
             border-right: 1px solid var(--border-color);
+            border-top: 2px solid transparent;
             cursor: pointer;
             color: #969696;
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: #ffffff;
+            border-color: var(--accent-color);
+            box-shadow: inset 0 0 8px rgba(0, 122, 204, 0.3);
         }
 
         .tab.active {
@@ -470,7 +504,6 @@
         const codeEditor = document.getElementById('codeEditor');
         const analyzerView = document.getElementById('analyzer-view');
 
-        // Hàm đẩy dữ liệu lên Firebase Firestore mỗi khi gõ chữ
         async function syncToFirebase() {
             try {
                 await setDoc(doc(db, "projects", "my_mobile_workspace"), {
@@ -489,7 +522,6 @@
                 projectFiles[currentActiveFile].content = e.target.value;
                 saveData();
                 
-                // Sử dụng debounce để tránh gọi Firebase liên tục gây chậm máy
                 clearTimeout(saveTimeout);
                 saveTimeout = setTimeout(() => {
                     syncToFirebase();
