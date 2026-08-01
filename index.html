@@ -168,7 +168,6 @@
             border-radius: 3px;
         }
 
-        /* Thu nhỏ khoảng cách dọc và thêm hiệu ứng phát sáng khi rê chuột */
         .file-item {
             padding: 2px 8px;
             font-size: 0.82rem;
@@ -208,7 +207,6 @@
             text-shadow: 0 0 8px rgba(248, 113, 113, 0.8);
         }
 
-        /* Khu vực Soạn thảo code */
         .editor-container {
             flex: 1;
             display: flex;
@@ -282,7 +280,6 @@
             line-height: 1.6;
         }
 
-        /* Màn hình Xem kết quả & Bắt lỗi dạng Modal đè toàn màn hình */
         .preview-pane, .console-pane {
             position: absolute;
             top: 0;
@@ -411,11 +408,15 @@
     </div>
 
     <script>
-        let projectTiers = JSON.parse(localStorage.getItem('my_project_tiers_v7')) || [1, 2, 3];
-        let projectFiles = JSON.parse(localStorage.getItem('my_project_files_v7')) || {
+        let projectTiers = JSON.parse(localStorage.getItem('my_project_tiers_v8')) || [1, 2, 3];
+        let projectFiles = JSON.parse(localStorage.getItem('my_project_files_v8')) || {
             "index.html": { 
                 type: "html", 
-                content: '<div style="padding:20px; font-family:sans-serif; text-align:center;">\n    <h2>Hệ Thống Mobile Đa Tầng</h2>\n    <p id="status-text" style="color:blue; margin-top:10px;">Chạy mượt mà trên điện thoại!</p>\n</div>' 
+                content: '<div style="padding:20px; font-family:sans-serif; text-align:center;">\n    <h2>Hệ Thống Mobile Đa Tầng</h2>\n    <p id="status-text" style="color:blue; margin-top:10px;">Firebase đã được tích hợp thành công!</p>\n</div>' 
+            },
+            "libs/tang1/firebase-config.html": {
+                type: "lib",
+                content: `<!-- Firebase SDK & Config -->\n<script type="module">\n  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";\n  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";\n\n  const firebaseConfig = {\n    apiKey: "AIzaSyAF6g3aSW-TvOGiNeG1_yh8dx6Pb8CakSQ",\n    authDomain: "vscodemini.firebaseapp.com",\n    projectId: "vscodemini",\n    storageBucket: "vscodemini.firebasestorage.app",\n    messagingSenderId: "522737122764",\n    appId: "1:522737122764:web:59d23b981fa62d27a5b169",\n    measurementId: "G-63CCHD7K"\n  };\n\n  const app = initializeApp(firebaseConfig);\n  const analytics = getAnalytics(app);\n  console.log("Firebase initialized successfully!");\n<\/script>`
             }
         };
 
@@ -429,7 +430,7 @@
             if (!Object.keys(projectFiles).some(f => f.startsWith(`js/tang${tier}/`))) {
                 projectFiles[`js/tang${tier}/module1.js`] = { type: "js", content: `// JS Tầng ${tier}\n` };
             }
-            if (!Object.keys(projectFiles).some(f => f.startsWith(`libs/tang${tier}/`))) {
+            if (!Object.keys(projectFiles).some(f => f.startsWith(`libs/tang${tier}/`)) && tier !== 1) {
                 projectFiles[`libs/tang${tier}/cdn1.html`] = { type: "lib", content: `<!-- CDN Tầng ${tier} -->\n` };
             }
         });
@@ -447,8 +448,8 @@
         });
 
         function saveData() {
-            localStorage.setItem('my_project_tiers_v7', JSON.stringify(projectTiers));
-            localStorage.setItem('my_project_files_v7', JSON.stringify(projectFiles));
+            localStorage.setItem('my_project_tiers_v8', JSON.stringify(projectTiers));
+            localStorage.setItem('my_project_files_v8', JSON.stringify(projectFiles));
         }
 
         window.toggleSidebar = function() {
