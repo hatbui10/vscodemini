@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mini VS Code Mobile - Tối Ưu Điện Thoại</title>
+    <title>Mini VS Code Mobile - Tối Ưu Điện Thoại & Firebase</title>
     <style>
         :root {
             --bg-base: #1e1e1e;
@@ -352,27 +352,25 @@
             display: block;
         }
 
-#currentFileName {
-    font-size: 0.75rem; 
-    color: #9cdcfe; 
-    background-color: #D46D25; /* Màu nền bạn muốn đổi (ví dụ: màu tối đồng bộ) */
-    padding: 4px 8px;          /* Khoảng cách đệm xung quanh chữ */
-    border-radius: 4px;        /* Bo tròn góc khung nền */
-    border: 1px solid #3f3f46; /* Viền nhẹ cho nổi bật */
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    white-space: nowrap; 
-    max-width: 130px;
-}
-
-
+        #currentFileName {
+            font-size: 0.75rem; 
+            color: #9cdcfe; 
+            background-color: #D46D25; 
+            padding: 4px 8px;          
+            border-radius: 4px;        
+            border: 1px solid #3f3f46; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+            max-width: 130px;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <button class="btn-action" onclick="toggleSidebar()">📁 Menu</button>
-        <span id="currentFileName" >index.html</span>
+        <span id="currentFileName">index.html</span>
         <div class="header-actions">
             <button class="btn-action btn-console" onclick="openConsole()">💻 Lỗi</button>
             <button class="btn-action" onclick="downloadProject()">📥 Tải</button>
@@ -418,11 +416,28 @@
                     <button class="btn-action" style="background:#333; padding:4px 8px;" onclick="closeConsole()">✕ Đóng</button>
                 </div>
             </div>
-            <div id="error-console">> Đã sẵn sàng trên điện thoại. Các tầng quản lý HTML, CSS, JS, Thư viện hoạt động bình thường.</div>
+            <div id="error-console">> Đã sẵn sàng trên điện thoại. Hệ thống kết nối Firebase Cloud Firestore hoạt động bình thường.</div>
         </div>
     </div>
 
-    <script>
+    <!-- Nhúng Firebase SDK kiểu Module để tự động đẩy dữ liệu lên Firestore -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAF6g3aSW-TvOGiNeG1_yh8dx6Pb8CakSQ",
+            authDomain: "vscodemini.firebaseapp.com",
+            projectId: "vscodemini",
+            storageBucket: "vscodemini.firebasestorage.app",
+            messagingSenderId: "522737122764",
+            appId: "1:522737122764:web:59d23b981fa62d27a5b169",
+            measurementId: "G-63CCHD7K"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
         let projectTiers = JSON.parse(localStorage.getItem('my_project_tiers_v8')) || [1, 2, 3];
         let projectFiles = JSON.parse(localStorage.getItem('my_project_files_v8')) || {
             "index.html": { 
@@ -431,7 +446,7 @@
             },
             "libs/tang1/firebase-config.html": {
                 type: "lib",
-                content: `<!-- Firebase SDK & Config -->\n<script type="module">\n  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";\n  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics.js";\n\n  const firebaseConfig = {\n    apiKey: "AIzaSyAF6g3aSW-TvOGiNeG1_yh8dx6Pb8CakSQ",\n    authDomain: "vscodemini.firebaseapp.com",\n    projectId: "vscodemini",\n    storageBucket: "vscodemini.firebasestorage.app",\n    messagingSenderId: "522737122764",\n    appId: "1:522737122764:web:59d23b981fa62d27a5b169",\n    measurementId: "G-63CCHD7K"\n  };\n\n  const app = initializeApp(firebaseConfig);\n  const analytics = getAnalytics(app);\n  console.log("Firebase initialized successfully!");\n<\/script>`
+                content: `<!-- Firebase SDK & Config -->\n<script type="module">\n  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";\n\n  const firebaseConfig = {\n    apiKey: "AIzaSyAF6g3aSW-TvOGiNeG1_yh8dx6Pb8CakSQ",\n    authDomain: "vscodemini.firebaseapp.com",\n    projectId: "vscodemini",\n    storageBucket: "vscodemini.firebasestorage.app",\n    messagingSenderId: "522737122764",\n    appId: "1:522737122764:web:59d23b981fa62d27a5b169"\n  };\n  initializeApp(firebaseConfig);\n<\/script>`
             }
         };
 
@@ -455,10 +470,30 @@
         const codeEditor = document.getElementById('codeEditor');
         const analyzerView = document.getElementById('analyzer-view');
 
+        // Hàm đẩy dữ liệu lên Firebase Firestore mỗi khi gõ chữ
+        async function syncToFirebase() {
+            try {
+                await setDoc(doc(db, "projects", "my_mobile_workspace"), {
+                    tiers: projectTiers,
+                    files: projectFiles,
+                    updatedAt: new Date().toISOString()
+                });
+            } catch (err) {
+                console.error("Lỗi đồng bộ Firebase:", err);
+            }
+        }
+
+        let saveTimeout;
         codeEditor.addEventListener('input', (e) => {
             if (projectFiles[currentActiveFile]) {
                 projectFiles[currentActiveFile].content = e.target.value;
                 saveData();
+                
+                // Sử dụng debounce để tránh gọi Firebase liên tục gây chậm máy
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(() => {
+                    syncToFirebase();
+                }, 1000);
             }
         });
 
@@ -536,6 +571,7 @@
             projectFiles[`js/tang${newTier}/module1.js`] = { type: "js", content: `// JS Tầng ${newTier}\n` };
             projectFiles[`libs/tang${newTier}/cdn1.html`] = { type: "lib", content: `<!-- CDN Tầng ${newTier} -->\n` };
             saveData();
+            syncToFirebase();
             renderFileList();
         }
 
@@ -553,6 +589,7 @@
                 });
                 projectTiers = projectTiers.filter(t => t !== tier);
                 saveData();
+                syncToFirebase();
                 if (!projectFiles[currentActiveFile]) window.openFile("index.html");
                 else renderFileList();
             }
@@ -565,6 +602,7 @@
             let newFile = `html/tang${tier}/block${nextIndex}.html`;
             projectFiles[newFile] = { type: "html", content: `<!-- HTML Tầng ${tier} -->\n` };
             saveData();
+            syncToFirebase();
             renderFileList();
             window.openFile(newFile);
             window.toggleSidebar();
@@ -577,6 +615,7 @@
             let newFile = `css/tang${tier}/style${nextIndex}.css`;
             projectFiles[newFile] = { type: "css", content: `/* CSS Tầng ${tier} */\n` };
             saveData();
+            syncToFirebase();
             renderFileList();
             window.openFile(newFile);
             window.toggleSidebar();
@@ -589,6 +628,7 @@
             let newFile = `js/tang${tier}/module${nextIndex}.js`;
             projectFiles[newFile] = { type: "js", content: `// JS Tầng ${tier}\n` };
             saveData();
+            syncToFirebase();
             renderFileList();
             window.openFile(newFile);
             window.toggleSidebar();
@@ -601,6 +641,7 @@
             let newFile = `libs/tang${tier}/cdn${nextIndex}.html`;
             projectFiles[newFile] = { type: "lib", content: `<!-- CDN Tầng ${tier} -->\n` };
             saveData();
+            syncToFirebase();
             renderFileList();
             window.openFile(newFile);
             window.toggleSidebar();
@@ -616,6 +657,7 @@
                 delete projectFiles[filename];
                 openTabs = openTabs.filter(t => t !== filename);
                 saveData();
+                syncToFirebase();
                 if (currentActiveFile === filename) window.openFile("index.html");
                 else renderFileList();
             }
