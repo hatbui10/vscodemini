@@ -52,7 +52,7 @@
         }
 
         .btn-action {
-            background-color: #333;
+            background-color: #FF9A00;
             color: white;
             border: 1px solid var(--border-color);
             padding: 6px 10px;
@@ -351,13 +351,28 @@
         .backdrop.show {
             display: block;
         }
+
+#currentFileName {
+    font-size: 0.75rem; 
+    color: #9cdcfe; 
+    background-color: #D46D25; /* Màu nền bạn muốn đổi (ví dụ: màu tối đồng bộ) */
+    padding: 4px 8px;          /* Khoảng cách đệm xung quanh chữ */
+    border-radius: 4px;        /* Bo tròn góc khung nền */
+    border: 1px solid #3f3f46; /* Viền nhẹ cho nổi bật */
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
+    max-width: 130px;
+}
+
+
     </style>
 </head>
 <body>
 
     <header>
         <button class="btn-action" onclick="toggleSidebar()">📁 Menu</button>
-        <span id="currentFileName" style="font-size: 0.7rem; color: #9cdcfe; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 110px;">index.html</span>
+        <span id="currentFileName" >index.html</span>
         <div class="header-actions">
             <button class="btn-action btn-console" onclick="openConsole()">💻 Lỗi</button>
             <button class="btn-action" onclick="downloadProject()">📥 Tải</button>
