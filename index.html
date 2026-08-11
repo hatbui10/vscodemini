@@ -275,51 +275,51 @@
             color: #ffffff;
             border-top: 2px solid var(--accent-color);
         }
-.editor-pane {
-    flex: 1;
-    display: flex;
-    flex-direction: row;
-    overflow: hidden;
-    position: relative;
-    height: 100%;
-}
+        
+        .editor-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+        }
 
-.line-numbers {
-    width: 45px;
-    background-color: #1e1e1e;
-    color: #858585;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9rem;
-    padding: 12px 4px;
-    text-align: right;
-    user-select: none;
-    line-height: 1.5;
-    border-right: 1px solid #333;
-    height: 100%;
-    box-sizing: border-box;
-    /* Đảm bảo khung cha .editor-pane có overflow: hidden sẽ tự cắt gọn phần thừa khi dịch chuyển */
-}
+        .line-numbers {
+            width: 45px;
+            background-color: #1e1e1e;
+            color: #858585;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            padding: 12px 4px;
+            text-align: right;
+            user-select: none;
+            line-height: 1.5;
+            border-right: 1px solid #333;
+            height: 100%;
+            box-sizing: border-box;
+        }
 
-textarea {
-    flex: 1;
-    width: 100%;
-    height: 650px;
-    background-color: var(--bg-base, #1e1e1e);
-    color: var(--text-color, #d4d4d4);
-    border: none;
-    padding: 12px;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9rem;
-    resize: none;
-    outline: none;
-    line-height: 1.5; /* Bắt buộc line-height phải khớp tuyệt đối với .line-numbers */
-    -webkit-appearance: none;
-    overflow-y: auto; /* Chỉ cho phép textarea cuộn dọc */
-    -webkit-overflow-scrolling: touch;
-    white-space: pre;
-    tab-size: 4;
-    box-sizing: border-box;
-}
+        textarea {
+            flex: 1;
+            width: 100%;
+            height: 650px;
+            background-color: var(--bg-base, #1e1e1e);
+            color: var(--text-color, #d4d4d4);
+            border: none;
+            padding: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+            -webkit-appearance: none;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: pre;
+            tab-size: 4;
+            box-sizing: border-box;
+        }
 
         #analyzer-view {
             display: none;
@@ -418,6 +418,71 @@ textarea {
             white-space: nowrap; 
             max-width: 130px;
         }
+
+        /* CSS cho Modal nhập tên file */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 300;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-box {
+            background: #252526;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .modal-box h4 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .modal-box input {
+            width: 100%;
+            padding: 8px;
+            background: #1e1e1e;
+            border: 1px solid #454545;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        .modal-box input:focus {
+            border-color: var(--accent-color);
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+        .modal-buttons button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .btn-cancel {
+            background: #333;
+            color: #ccc;
+        }
+        .btn-confirm {
+            background: var(--accent-color);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -472,6 +537,18 @@ textarea {
                 </div>
             </div>
             <div id="error-console">> Đã sẵn sàng trên điện thoại. Hệ thống kết nối Firebase Cloud Firestore hoạt động bình thường.</div>
+        </div>
+    </div>
+
+    <!-- Hộp thoại nhập tên file tùy chỉnh -->
+    <div class="modal-overlay" id="fileNameModal">
+        <div class="modal-box">
+            <h4 id="modalTitle">Nhập tên file mới</h4>
+            <input type="text" id="fileNameInput" placeholder="Nhập tên file..." />
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeFileNameModal()">Hủy</button>
+                <button class="btn-confirm" id="modalConfirmBtn">Tạo File</button>
+            </div>
         </div>
     </div>
 
@@ -537,9 +614,9 @@ textarea {
         }
 
         // Đồng bộ cuộn mượt mà bằng hiệu ứng dịch chuyển khung số dòng
-codeEditor.addEventListener('scroll', () => {
-    lineNumbers.style.transform = `translateY(-${codeEditor.scrollTop}px)`;
-});
+        codeEditor.addEventListener('scroll', () => {
+            lineNumbers.style.transform = `translateY(-${codeEditor.scrollTop}px)`;
+        });
 
         async function syncToFirebase() {
             try {
@@ -604,10 +681,10 @@ codeEditor.addEventListener('scroll', () => {
                 groupHeader.innerHTML = `
                     <span>📁 Tầng ${tier}</span>
                     <div class="folder-actions-inline">
-                        <button onclick="event.stopPropagation(); addNewHtml(${tier})">+HTML</button>
-                        <button onclick="event.stopPropagation(); addNewCss(${tier})">+CSS</button>
-                        <button onclick="event.stopPropagation(); addNewModule(${tier})">+JS</button>
-                        <button onclick="event.stopPropagation(); addNewLib(${tier})">+Lib</button>
+                        <button onclick="event.stopPropagation(); promptAddFile(${tier}, 'html')">+HTML</button>
+                        <button onclick="event.stopPropagation(); promptAddFile(${tier}, 'css')">+CSS</button>
+                        <button onclick="event.stopPropagation(); promptAddFile(${tier}, 'js')">+JS</button>
+                        <button onclick="event.stopPropagation(); promptAddFile(${tier}, 'lib')">+Lib</button>
                         <button onclick="event.stopPropagation(); deleteTier(${tier})" style="color:#f87171;">🗑️</button>
                     </div>
                 `;
@@ -665,55 +742,57 @@ codeEditor.addEventListener('scroll', () => {
             }
         }
 
-        window.addNewHtml = function(tier) {
-            let existing = Object.keys(projectFiles).filter(f => f.startsWith(`html/tang${tier}/`));
-            let nextIndex = existing.length + 1;
-            while(projectFiles[`html/tang${tier}/block${nextIndex}.html`]) nextIndex++;
-            let newFile = `html/tang${tier}/block${nextIndex}.html`;
-            projectFiles[newFile] = { type: "html", content: `<!-- HTML Tầng ${tier} -->\n` };
-            saveData();
-            syncToFirebase();
-            renderFileList();
-            window.openFile(newFile);
-            window.toggleSidebar();
+        // Logic mở hộp thoại nhập tên file có sẵn đuôi tự động
+        let activeModalTier = null;
+        let activeModalType = null;
+
+        window.promptAddFile = function(tier, type) {
+            activeModalTier = tier;
+            activeModalType = type;
+            
+            // Xác định phần mở rộng mặc định theo từng loại nút
+            let extension = type === 'html' ? '.html' : type === 'css' ? '.css' : type === 'js' ? '.js' : '.html';
+            
+            document.getElementById('modalTitle').innerText = `Thêm file ${type.toUpperCase()} vào Tầng ${tier}`;
+            let inputEl = document.getElementById('fileNameInput');
+            inputEl.value = extension; // Tự động điền đuôi sẵn vào ô input
+            
+            document.getElementById('fileNameModal').classList.add('show');
+            setTimeout(() => {
+                inputEl.focus();
+                inputEl.setSelectionRange(0, 0); // Đưa con trỏ về đầu ô để dễ gõ tên
+            }, 100);
         }
 
-        window.addNewCss = function(tier) {
-            let existing = Object.keys(projectFiles).filter(f => f.startsWith(`css/tang${tier}/`));
-            let nextIndex = existing.length + 1;
-            while(projectFiles[`css/tang${tier}/style${nextIndex}.css`]) nextIndex++;
-            let newFile = `css/tang${tier}/style${nextIndex}.css`;
-            projectFiles[newFile] = { type: "css", content: `/* CSS Tầng ${tier} */\n` };
-            saveData();
-            syncToFirebase();
-            renderFileList();
-            window.openFile(newFile);
-            window.toggleSidebar();
+        window.closeFileNameModal = function() {
+            document.getElementById('fileNameModal').classList.remove('show');
         }
 
-        window.addNewModule = function(tier) {
-            let existing = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`));
-            let nextIndex = existing.length + 1;
-            while(projectFiles[`js/tang${tier}/module${nextIndex}.js`]) nextIndex++;
-            let newFile = `js/tang${tier}/module${nextIndex}.js`;
-            projectFiles[newFile] = { type: "js", content: `// JS Tầng ${tier}\n` };
-            saveData();
-            syncToFirebase();
-            renderFileList();
-            window.openFile(newFile);
-            window.toggleSidebar();
-        }
+        document.getElementById('modalConfirmBtn').onclick = function() {
+            let userFilename = document.getElementById('fileNameInput').value.trim();
+            if (!userFilename) {
+                alert("Tên file không được để trống!");
+                return;
+            }
 
-        window.addNewLib = function(tier) {
-            let existing = Object.keys(projectFiles).filter(f => f.startsWith(`libs/tang${tier}/`));
-            let nextIndex = existing.length + 1;
-            while(projectFiles[`libs/tang${tier}/cdn${nextIndex}.html`]) nextIndex++;
-            let newFile = `libs/tang${tier}/cdn${nextIndex}.html`;
-            projectFiles[newFile] = { type: "lib", content: `<!-- CDN Tầng ${tier} -->\n` };
+            let tier = activeModalTier;
+            let type = activeModalType;
+            let folderPrefix = type === 'lib' ? `libs/tang${tier}/` : `${type}/tang${tier}/`;
+            let fullPath = folderPrefix + userFilename;
+
+            if (projectFiles[fullPath]) {
+                alert("Tên file này đã tồn tại trong tầng, vui lòng chọn tên khác!");
+                return;
+            }
+
+            let defaultContent = type === 'html' ? `<!-- HTML Tầng ${tier} -->\n` : type === 'css' ? `/* CSS Tầng ${tier} */\n` : type === 'js' ? `// JS Tầng ${tier}\n` : `<!-- CDN Tầng ${tier} -->\n`;
+
+            projectFiles[fullPath] = { type: type, content: defaultContent };
             saveData();
             syncToFirebase();
             renderFileList();
-            window.openFile(newFile);
+            window.openFile(fullPath);
+            window.closeFileNameModal();
             window.toggleSidebar();
         }
 
