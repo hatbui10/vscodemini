@@ -1,4 +1,596 @@
-vào đây..."></textarea>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mini VS Code Mobile - Tối Ưu Điện Thoại & Firebase</title>
+    <style>
+        :root {
+            --bg-base: #1e1e1e;
+            --sidebar-bg: #252526;
+            --activity-bar: #333333;
+            --tab-bg: #2d2d2d;
+            --tab-active: #1e1e1e;
+            --text-color: #d4d4d4;
+            --accent-color: #007acc;
+            --border-color: #3f3f46;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-color);
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Thanh Header trên cùng */
+        header {
+            background-color: var(--activity-bar);
+            padding: 10px 8px;
+            font-size: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-action {
+            background-color: #FF9A00;
+            color: white;
+            border: 1px solid var(--border-color);
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-action:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(0, 122, 204, 0.6), inset 0 0 4px rgba(0, 122, 204, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .btn-run {
+            background-color: #2ea44f;
+            border: none;
+            font-weight: 600;
+        }
+
+        .btn-console {
+            background-color: #007acc;
+            border: none;
+            font-weight: 600;
+        }
+
+        .workspace {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Menu Sidebar quản lý file trượt từ trái sang */
+        .sidebar {
+            position: absolute;
+            left: -100%;
+            top: 0;
+            width: 90%;
+            max-width: 340px;
+            height: 100%;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            transition: left 0.25s ease-in-out;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar-header {
+            padding: 12px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            font-weight: bold;
+            color: #969696;
+            background: #2d2d2d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sidebar-toolbar {
+            padding: 8px;
+            background: #222;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 6px;
+        }
+
+        .sidebar-toolbar button {
+            background: #2a2d2e;
+            color: #d4d4d4;
+            border: 1px solid #454545;
+            padding: 6px 10px;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toolbar button:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(0, 122, 204, 0.6), inset 0 0 4px rgba(0, 122, 204, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .file-list {
+            flex: 1;
+            overflow-y: auto;
+            list-style: none;
+            padding-bottom: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .folder-group-header {
+            padding: 6px 8px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #c586c0;
+            background: rgba(255,255,255,0.04);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .folder-group-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .folder-actions-inline {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+        }
+
+        .folder-actions-inline button {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #ccc;
+            font-size: 0.62rem;
+            cursor: pointer;
+            padding: 3px 5px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .folder-actions-inline button:hover {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(0, 122, 204, 0.6), inset 0 0 4px rgba(0, 122, 204, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .file-item {
+            padding: 4px 8px;
+            font-size: 0.82rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.02);
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            background-color: rgba(0, 122, 204, 0.15);
+            color: #ffffff;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 12px rgba(0, 122, 204, 0.6), inset 0 0 4px rgba(0, 122, 204, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .file-item.active {
+            background-color: #37373d;
+            color: #ffffff;
+            border-left: 3px solid var(--accent-color);
+            border-color: var(--accent-color);
+        }
+
+        .file-delete-btn {
+            background: none;
+            border: 1px solid transparent;
+            color: #f87171;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 2px 6px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        .file-delete-btn:hover {
+            border-color: #f87171;
+            box-shadow: 0 0 12px rgba(248, 113, 113, 0.6), inset 0 0 4px rgba(248, 113, 113, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: var(--bg-base);
+            overflow: hidden;
+        }
+
+        .tabs-bar {
+            background-color: var(--sidebar-bg);
+            display: flex;
+            overflow-x: auto;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .tab {
+            padding: 8px 12px;
+            font-size: 0.78rem;
+            background-color: var(--tab-bg);
+            border-right: 1px solid var(--border-color);
+            border-top: 2px solid transparent;
+            cursor: pointer;
+            color: #969696;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .tab:hover {
+            color: #ffffff;
+            border-color: var(--accent-color);
+            box-shadow: inset 0 0 8px rgba(0, 122, 204, 0.3);
+        }
+
+        .tab.active {
+            background-color: var(--tab-active);
+            color: #ffffff;
+            border-top: 2px solid var(--accent-color);
+        }
+        
+        .editor-pane {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+        }
+
+        .line-numbers {
+            width: 45px;
+            background-color: #1e1e1e;
+            color: #858585;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            padding: 12px 4px;
+            text-align: right;
+            user-select: none;
+            line-height: 1.5;
+            border-right: 1px solid #333;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            flex: 1;
+            width: 100%;
+            height: 650px;
+            background-color: var(--bg-base, #1e1e1e);
+            color: var(--text-color, #d4d4d4);
+            border: none;
+            padding: 12px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.9rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+            -webkit-appearance: none;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: pre;
+            tab-size: 4;
+            box-sizing: border-box;
+        }
+
+        #analyzer-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            background: #1e1e1e;
+            color: #38bdf8;
+            padding: 16px;
+            font-family: monospace;
+            font-size: 0.82rem;
+            overflow-y: auto;
+            line-height: 1.6;
+        }
+
+        .preview-pane, .console-pane {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+        }
+
+        .preview-pane.active, .console-pane.active {
+            display: flex;
+        }
+
+        .preview-header, .console-pane-header {
+            background-color: #f0f0f0;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .console-pane {
+            background-color: #121212;
+            color: #d4d4d4;
+        }
+
+        .console-pane-header {
+            background-color: #252526;
+            color: #9cdcfe;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        #preview-iframe {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        #error-console {
+            flex: 1;
+            background: #000;
+            color: #38bdf8;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.78rem;
+            overflow-y: auto;
+            line-height: 1.5;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .backdrop {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 90;
+            display: none;
+        }
+        .backdrop.show {
+            display: block;
+        }
+
+        #currentFileName {
+            font-size: 0.75rem; 
+            color: #9cdcfe; 
+            background-color: #D46D25; 
+            padding: 4px 8px;          
+            border-radius: 4px;        
+            border: 1px solid #3f3f46; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            white-space: nowrap; 
+            max-width: 130px;
+        }
+
+        /* CSS cho Modal nhập tên file */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 300;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.show {
+            display: flex;
+        }
+        .modal-box {
+            background: #252526;
+            border: 1px solid var(--border-color);
+            padding: 16px;
+            border-radius: 6px;
+            width: 90%;
+            max-width: 300px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+        .modal-box h4 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+        .modal-box input {
+            width: 100%;
+            padding: 8px;
+            background: #1e1e1e;
+            border: 1px solid #454545;
+            color: #fff;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 12px;
+            outline: none;
+        }
+        .modal-box input:focus {
+            border-color: var(--accent-color);
+        }
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 6px;
+        }
+        .modal-buttons button {
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+        .btn-cancel {
+            background: #333;
+            color: #ccc;
+        }
+        .btn-confirm {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        #master-splitter-view {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 650px;
+            background: #1e1e1e;
+            padding: 8px;
+        }
+        
+        .master-editor-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+            overflow: hidden;
+            position: relative;
+            background: #141414;
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-top: 6px;
+        }
+
+        #master-line-numbers {
+            width: 45px;
+            background-color: #1e1e1e;
+            color: #858585;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.85rem;
+            padding: 10px 4px;
+            text-align: right;
+            user-select: none;
+            line-height: 1.5;
+            border-right: 1px solid #333;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        #master-textarea {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            color: #4ade80;
+            border: none;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 0.85rem;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+            white-space: pre;
+            tab-size: 4;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <button class="btn-action" onclick="toggleSidebar()">📁 Menu</button>
+        <span id="currentFileName">index.html</span>
+        <div class="header-actions">
+            <button class="btn-action btn-console" onclick="openConsole()">💻 Lỗi</button>
+            <button class="btn-action" onclick="downloadProject()">📥 Tải</button>
+            <button class="btn-action btn-run" onclick="runProject()">▶ Chạy</button>
+        </div>
+    </header>
+
+    <div class="workspace">
+        <div class="backdrop" id="backdrop" onclick="toggleSidebar()"></div>
+
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <span>📁 Quản Lý Tầng & File</span>
+                <span onclick="toggleSidebar()" style="font-size:1.2rem; cursor:pointer; padding: 0 5px;">✕</span>
+            </div>
+            <div class="sidebar-toolbar">
+                <button onclick="addNewTier()">➕ Thêm Tầng Mới</button>
+            </div>
+            <ul class="file-list" id="fileListUI"></ul>
+        </div>
+
+        <div class="editor-container">
+            <div class="tabs-bar" id="tabsBarUI"></div>
+
+            <div class="editor-pane">
+                <div id="lineNumbers" class="line-numbers">1</div>
+                <textarea id="codeEditor" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Chọn file để chỉnh sửa..."></textarea>
+                
+                <div id="master-splitter-view">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span id="master-title" style="font-size:0.8rem; font-weight:bold; color:#eab308;">📥 Ô Gộp/Tách Dữ Liệu Tầng</span>
+                        <button class="btn-action" style="padding:4px 8px; font-size:0.7rem;" onclick="processMasterSplitter()">⚡ Tách Vào Các File Con</button>
+                    </div>
+                    <span style="font-size:0.68rem; color:#888; margin-top:2px;">Dán mã tổng hợp, hệ thống tự động lọc các khối div vào file .div!</span>
+                    
+                    <div class="master-editor-wrapper">
+                        <div id="master-line-numbers">1</div>
+                        <textarea id="master-textarea" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Dán mã HTML tổng hợp chứa <style> và <script> vào đây..."></textarea>
                     </div>
                 </div>
             </div>
@@ -24,7 +616,6 @@ vào đây..."></textarea>
         </div>
     </div>
 
-    <!-- Hộp thoại nhập tên file tùy chỉnh -->
     <div class="modal-overlay" id="fileNameModal">
         <div class="modal-box">
             <h4 id="modalTitle">Nhập tên file mới</h4>
@@ -36,7 +627,6 @@ vào đây..."></textarea>
         </div>
     </div>
 
-    <!-- Nhúng Firebase SDK kiểu Module -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -321,18 +911,36 @@ vào đây..."></textarea>
             }
         }
 
-        function renderTabs() {
-            const tabsBarUI = document.getElementById('tabsBarUI');
-            tabsBarUI.innerHTML = '';
-            openTabs.forEach(filename => {
-                const tab = document.createElement('div');
-                tab.className = `tab ${filename === currentActiveFile ? 'active' : ''}`;
-                let displayName = filename === 'ANALYZE_TOOL' ? '📊 Phân Tích' : (filename.includes('/') ? filename.split('/').slice(-2).join('/') : filename);
-                tab.innerHTML = `<span>${displayName}</span> <span onclick="event.stopPropagation(); window.closeTab('${filename}')" style="opacity:0.6; padding-left:4px;">✕</span>`;
-                tab.onclick = () => filename === 'ANALYZE_TOOL' ? window.openAnalyzer() : window.switchFile(filename);
-                tabsBarUI.appendChild(tab);
-            });
-        }
+       function renderTabs() {
+    const tabsBarUI = document.getElementById('tabsBarUI');
+    tabsBarUI.innerHTML = '';
+    openTabs.forEach(filename => {
+        const tab = document.createElement('div');
+        tab.className = `tab ${filename === currentActiveFile ? 'active' : ''}`;
+        let displayName = filename === 'ANALYZE_TOOL' ? '📊 Phân Tích' : (filename.includes('/') ? filename.split('/').slice(-2).join('/') : filename);
+        tab.innerHTML = `<span>${displayName}</span> <span onclick="event.stopPropagation(); window.closeTab('${filename}')" style="opacity:0.6; padding-left:4px;">✕</span>`;
+        
+        // ❌ Đoạn cũ đang dùng switchFile gây lỗi không load nội dung:
+        // tab.onclick = () => filename === 'ANALYZE_TOOL' ? window.openAnalyzer() : window.switchFile(filename);
+        
+        // ✅ Sửa thành gọi openFile và openMaster tương ứng:
+        tab.onclick = () => {
+            if (filename === 'ANALYZE_TOOL') {
+                window.openAnalyzer();
+            } else if (filename.startsWith('MASTER_TIER_')) {
+                let tier = filename.split('_')[2];
+                window.openMaster(tier);
+            } else {
+                window.openFile(filename);
+            }
+        };
+
+        tabsBarUI.appendChild(tab);
+    });
+}
+
+
+
 
         window.openFile = function(filename) {
             if (!openTabs.includes(filename)) openTabs.push(filename);
@@ -464,7 +1072,6 @@ vào đây..."></textarea>
         renderFileList();
         window.openFile("index.html");
 
-       // Mở Ô tổng hợp Tách & Gộp cho từng tầng (Đã sửa lại chỉ lấy đúng file .div của tầng)
         window.openMaster = function(tier) {
             currentActiveFile = `MASTER_TIER_${tier}`;
             if (!openTabs.includes(currentActiveFile)) openTabs.push(currentActiveFile);
@@ -479,7 +1086,6 @@ vào đây..."></textarea>
             let combinedCss = "";
             let combinedJs = "";
 
-            // Chỉ gom nội dung từ các file .div thực sự thuộc tầng này
             Object.keys(projectFiles).forEach(f => {
                 if (f.startsWith(`html/tang${tier}/`) && f.endsWith('.div')) {
                     combinedHtml += projectFiles[f].content + "\n";
@@ -498,22 +1104,17 @@ vào đây..."></textarea>
             renderTabs();
         }
 
-
-
-
-        // Bấm nút Tách dữ liệu vào các file con dạng .div
         window.processMasterSplitter = function() {
             let tier = currentActiveFile.split('_')[2];
             let rawContent = masterTextarea.value;
             parseAndDistributeMasterContent(tier, rawContent, true);
         }
 
-        // Logic phân tách và gom toàn bộ khối div vào file đuôi .div của tầng
         function parseAndDistributeMasterContent(tier, content, showAlert = false) {
             let cssMatch = content.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
             let extractedCss = cssMatch ? cssMatch[1].trim() : "";
 
-            let scriptRegex = /<script[^>]*>([\s\S]*?)<\/script>/gi;
+            let scriptRegex = /<script\b(?![^>]*\btype=["']module["'])[^>]*>([\s\S]*?)<\/script>/gi;
             let match;
             let jsParts = [];
             while ((match = scriptRegex.exec(content)) !== null) {
@@ -521,40 +1122,92 @@ vào đây..."></textarea>
                     jsParts.push(match[1].trim());
                 }
             }
-            let extractedJs = jsParts.join("\n\n");
+            let fullJsCode = jsParts.join("\n\n");
 
             let cleanHtml = content
                 .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-                .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+                .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
                 .trim();
 
+            let touchedFiles = [];
+
+            // 1. Lưu HTML vào file .div
             let divFiles = Object.keys(projectFiles).filter(f => f.startsWith(`html/tang${tier}/`) && f.endsWith('.div')).sort();
-            
-            let targetDivFile = "";
-            if (divFiles.length > 0) {
-                targetDivFile = divFiles[0];
-            } else {
-                targetDivFile = `html/tang${tier}/content.div`;
-                projectFiles[targetDivFile] = { type: "html", content: "" };
-            }
-
+            let targetDivFile = divFiles.length > 0 ? divFiles[0] : `html/tang${tier}/content.div`;
+            if (!projectFiles[targetDivFile]) projectFiles[targetDivFile] = { type: "html", content: "" };
             projectFiles[targetDivFile].content = cleanHtml;
+            touchedFiles.push(targetDivFile);
 
+            // 2. Lưu CSS vào file .css đầu tiên
             let cssFiles = Object.keys(projectFiles).filter(f => f.startsWith(`css/tang${tier}/`)).sort();
             if (cssFiles.length > 0 && extractedCss) {
                 projectFiles[cssFiles[0]].content = extractedCss;
+                touchedFiles.push(cssFiles[0]);
             }
 
-            let jsFiles = Object.keys(projectFiles).filter(f => f.startsWith(`js/tang${tier}/`)).sort();
-            if (jsFiles.length > 0 && extractedJs) {
-                projectFiles[jsFiles[0]].content = extractedJs;
+            // 3. Tự động bóc tách JS thành từng file riêng cho mỗi hàm
+            if (fullJsCode) {
+                Object.keys(projectFiles).forEach(f => {
+                    if (f.startsWith(`js/tang${tier}/`)) {
+                        delete projectFiles[f];
+                        openTabs = openTabs.filter(t => t !== f);
+                    }
+                });
+
+                let functionRegex = /(?:function\s+([a-zA-Z0-9_$]+)|window\.([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>)|(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>))/g;
+                
+                let matches = [];
+                let m;
+                while ((m = functionRegex.exec(fullJsCode)) !== null) {
+                    let funcName = m[1] || m[2] || m[3];
+                    let startIndex = m.index;
+                    matches.push({ name: funcName, index: startIndex });
+                }
+
+                if (matches.length > 0) {
+                    for (let i = 0; i < matches.length; i++) {
+                        let start = matches[i].index;
+                        let end = (i < matches.length - 1) ? matches[i + 1].index : fullJsCode.length;
+                        let funcCodeSnippet = fullJsCode.substring(start, end).trim();
+                        let fileName = `${matches[i].name}.js`;
+                        let filePath = `js/tang${tier}/${fileName}`;
+                        
+                        projectFiles[filePath] = { type: "js", content: funcCodeSnippet };
+                        touchedFiles.push(filePath);
+                    }
+
+                    let firstFuncStart = matches[0].index;
+                    if (firstFuncStart > 0) {
+                        let headerCode = fullJsCode.substring(0, firstFuncStart).trim();
+                        if (headerCode) {
+                            let utilityPath = `js/tang${tier}/utility.js`;
+                            projectFiles[utilityPath] = { type: "js", content: headerCode };
+                            touchedFiles.push(utilityPath);
+                        }
+                    }
+                } else {
+                    let modulePath = `js/tang${tier}/module1.js`;
+                    projectFiles[modulePath] = { type: "js", content: fullJsCode };
+                    touchedFiles.push(modulePath);
+                }
             }
+
+            // Tự động mở và hiển thị các file vừa tách lên thanh ngang (tab bar)
+            touchedFiles.forEach(f => {
+                if (!openTabs.includes(f)) {
+                    openTabs.push(f);
+                }
+            });
 
             saveData();
-            if (typeof syncToFirebase === 'function') syncToFirebase();
-            if (typeof renderFileList === 'function') renderFileList();
+            syncToFirebase();
+            renderFileList();
+            renderTabs();
             
             if (showAlert) {
-                alert(`Đã tách thành công toàn bộ khối div vào file (${targetDivFile}) của Tầng ${tier}!`);
+                alert(`Đã tách thành công code của Tầng ${tier} và hiển thị trên các thẻ ngang!`);
             }
         }
+    </script>
+</body>
+</html>
