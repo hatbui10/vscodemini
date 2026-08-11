@@ -1167,104 +1167,134 @@
             parseAndDistributeMasterContent(tier, rawContent, true);
         }
 
-        function parseAndDistributeMasterContent(tier, content, showAlert = false) {
-            let cssMatch = content.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
-            let extractedCss = cssMatch ? cssMatch[1].trim() : "";
 
-            let scriptRegex = /<script\b(?![^>]*\btype=["']module["'])[^>]*>([\s\S]*?)<\/script>/gi;
-            let match;
-            let jsParts = [];
-            while ((match = scriptRegex.exec(content)) !== null) {
-                if (match[1].trim() !== "") {
-                    jsParts.push(match[1].trim());
-                }
-            }
-            let fullJsCode = jsParts.join("\n\n");
 
-            let cleanHtml = content
-                .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-                .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
-                .trim();
 
-            let touchedFiles = [];
+       function parseAndDistributeMasterContent(tier, content, showAlert = false) {
+    let cssMatch = content.match(/<style[^>]*>([\s\S]*?)<\/style>/i);
+    let extractedCss = cssMatch ? cssMatch[1].trim() : "";
 
-            // 1. Lưu HTML vào file .div
-            let divFiles = Object.keys(projectFiles).filter(f => f.startsWith(`html/tang${tier}/`) && f.endsWith('.div')).sort();
-            let targetDivFile = divFiles.length > 0 ? divFiles[0] : `html/tang${tier}/content.div`;
-            if (!projectFiles[targetDivFile]) projectFiles[targetDivFile] = { type: "html", content: "" };
-            projectFiles[targetDivFile].content = cleanHtml;
-            touchedFiles.push(targetDivFile);
+    // Quét toàn bộ các thẻ script (bao gồm cả script thường và script type="module")
+    let scriptRegex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+    let match;
+    let jsSnippets = []; // Lưu trữ cả nội dung và trạng thái module của từng thẻ script
 
-            // 2. Lưu CSS vào file .css đầu tiên
-            let cssFiles = Object.keys(projectFiles).filter(f => f.startsWith(`css/tang${tier}/`)).sort();
-            if (cssFiles.length > 0 && extractedCss) {
-                projectFiles[cssFiles[0]].content = extractedCss;
-                touchedFiles.push(cssFiles[0]);
-            }
-
-            // 3. Tự động bóc tách JS thành từng file riêng cho mỗi hàm
-            if (fullJsCode) {
-                Object.keys(projectFiles).forEach(f => {
-                    if (f.startsWith(`js/tang${tier}/`)) {
-                        delete projectFiles[f];
-                        openTabs = openTabs.filter(t => t !== f);
-                    }
-                });
-
-                let functionRegex = /(?:function\s+([a-zA-Z0-9_$]+)|window\.([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>)|(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>))/g;
-                
-                let matches = [];
-                let m;
-                while ((m = functionRegex.exec(fullJsCode)) !== null) {
-                    let funcName = m[1] || m[2] || m[3];
-                    let startIndex = m.index;
-                    matches.push({ name: funcName, index: startIndex });
-                }
-
-                if (matches.length > 0) {
-                    for (let i = 0; i < matches.length; i++) {
-                        let start = matches[i].index;
-                        let end = (i < matches.length - 1) ? matches[i + 1].index : fullJsCode.length;
-                        let funcCodeSnippet = fullJsCode.substring(start, end).trim();
-                        let fileName = `${matches[i].name}.js`;
-                        let filePath = `js/tang${tier}/${fileName}`;
-                        
-                        projectFiles[filePath] = { type: "js", content: funcCodeSnippet };
-                        touchedFiles.push(filePath);
-                    }
-
-                    let firstFuncStart = matches[0].index;
-                    if (firstFuncStart > 0) {
-                        let headerCode = fullJsCode.substring(0, firstFuncStart).trim();
-                        if (headerCode) {
-                            let utilityPath = `js/tang${tier}/utility.js`;
-                            projectFiles[utilityPath] = { type: "js", content: headerCode };
-                            touchedFiles.push(utilityPath);
-                        }
-                    }
-                } else {
-                    let modulePath = `js/tang${tier}/module1.js`;
-                    projectFiles[modulePath] = { type: "js", content: fullJsCode };
-                    touchedFiles.push(modulePath);
-                }
-            }
-
-            // Tự động mở và hiển thị các file vừa tách lên thanh ngang (tab bar)
-            touchedFiles.forEach(f => {
-                if (!openTabs.includes(f)) {
-                    openTabs.push(f);
-                }
-            });
-
-            saveData();
-            syncToFirebase();
-            renderFileList();
-            renderTabs();
-            
-            if (showAlert) {
-                alert(`Đã tách thành công code của Tầng ${tier} và hiển thị trên các thẻ ngang!`);
-            }
+    while ((match = scriptRegex.exec(content)) !== null) {
+        let attributes = match[1];
+        let scriptContent = match[2].trim();
+        if (scriptContent !== "") {
+            let isModule = /type=["']module["']/i.test(attributes);
+            jsSnippets.push({ content: scriptContent, isModule: isModule });
         }
+    }
+
+    let cleanHtml = content
+        .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+        .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+        .trim();
+
+    let touchedFiles = [];
+
+    // 1. Lưu HTML vào file .div
+    let divFiles = Object.keys(projectFiles).filter(f => f.startsWith(`html/tang${tier}/`) && f.endsWith('.div')).sort();
+    let targetDivFile = divFiles.length > 0 ? divFiles[0] : `html/tang${tier}/content.div`;
+    if (!projectFiles[targetDivFile]) projectFiles[targetDivFile] = { type: "html", content: "" };
+    projectFiles[targetDivFile].content = cleanHtml;
+    touchedFiles.push(targetDivFile);
+
+    // 2. Lưu CSS vào file .css đầu tiên
+    let cssFiles = Object.keys(projectFiles).filter(f => f.startsWith(`css/tang${tier}/`)).sort();
+    if (cssFiles.length > 0 && extractedCss) {
+        projectFiles[cssFiles[0]].content = extractedCss;
+        touchedFiles.push(cssFiles[0]);
+    }
+
+    // 3. Xóa các file JS cũ của tầng này trước khi tách mới
+    Object.keys(projectFiles).forEach(f => {
+        if (f.startsWith(`js/tang${tier}/`)) {
+            delete projectFiles[f];
+            openTabs = openTabs.filter(t => t !== f);
+        }
+    });
+
+    // 4. Tiến hành phân tách các đoạn script (xử lý riêng cho module hoặc script thường chứa hàm)
+    if (jsSnippets.length > 0) {
+        let fileCounter = 1;
+
+        jsSnippets.forEach(snippet => {
+            let fullJsCode = snippet.content;
+            
+            // Nếu là script module (như Firebase, import/export), lưu nguyên khối vào file module
+            if (snippet.isModule) {
+                let modulePath = `js/tang${tier}/firebase_module_${fileCounter++}.js`;
+                projectFiles[modulePath] = { type: "js", content: fullJsCode, isModule: true };
+                touchedFiles.push(modulePath);
+                return;
+            }
+
+            // Đối với script thường, tiến hành bóc tách theo từng hàm
+            let functionRegex = /(?:function\s+([a-zA-Z0-9_$]+)|window\.([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>)|(?:const|let|var)\s+([a-zA-Z0-9_$]+)\s*=\s*(?:function|\([^)]*\)\s*=>))/g;
+            
+            let matches = [];
+            let m;
+            while ((m = functionRegex.exec(fullJsCode)) !== null) {
+                let funcName = m[1] || m[2] || m[3];
+                let startIndex = m.index;
+                matches.push({ name: funcName, index: startIndex });
+            }
+
+            if (matches.length > 0) {
+                for (let i = 0; i < matches.length; i++) {
+                    let start = matches[i].index;
+                    let end = (i < matches.length - 1) ? matches[i + 1].index : fullJsCode.length;
+                    let funcCodeSnippet = fullJsCode.substring(start, end).trim();
+                    let fileName = `${matches[i].name}.js`;
+                    let filePath = `js/tang${tier}/${fileName}`;
+                    
+                    projectFiles[filePath] = { type: "js", content: funcCodeSnippet, isModule: false };
+                    touchedFiles.push(filePath);
+                }
+
+                let firstFuncStart = matches[0].index;
+                if (firstFuncStart > 0) {
+                    let headerCode = fullJsCode.substring(0, firstFuncStart).trim();
+                    if (headerCode) {
+                        let utilityPath = `js/tang${tier}/utility.js`;
+                        projectFiles[utilityPath] = { type: "js", content: headerCode, isModule: false };
+                        touchedFiles.push(utilityPath);
+                    }
+                }
+            } else {
+                let modulePath = `js/tang${tier}/module1.js`;
+                projectFiles[modulePath] = { type: "js", content: fullJsCode, isModule: false };
+                touchedFiles.push(modulePath);
+            }
+        });
+    }
+
+    // Tự động mở và hiển thị các file vừa tách lên thanh ngang (tab bar)
+    touchedFiles.forEach(f => {
+        if (!openTabs.includes(f)) {
+            openTabs.push(f);
+        }
+    });
+
+    saveData();
+    syncToFirebase();
+    renderFileList();
+    renderTabs();
+    
+    if (showAlert) {
+        alert(`Đã tách thành công code (bao gồm cả module) của Tầng ${tier}!`);
+    }
+}
+
+
+
+
+
+
+
 
 window.copyFileContent = function(filename) {
     let contentToCopy = "";
@@ -1272,8 +1302,34 @@ window.copyFileContent = function(filename) {
     // Kiểm tra nếu là file tổng hợp (Master)
     if (filename.startsWith('MASTER_TIER_')) {
         let tierId = filename.split('_')[2];
-        // Gọi lại logic gom nội dung của Master tier tương ứng nếu ứng dụng của bạn có sẵn hàm gom code, ví dụ:
-        contentToCopy = typeof window.generateMasterContent === 'function' ? window.generateMasterContent(tierId) : (projectFiles[filename]?.content || "");
+        
+        // Nếu có hàm window.generateMasterContent thì dùng, nếu không sẽ tự gom nhóm chuẩn hóa có type="module"
+        if (typeof window.generateMasterContent === 'function') {
+            contentToCopy = window.generateMasterContent(tierId);
+        } else {
+            let combinedHtml = "", combinedCss = "", combinedJs = "";
+            
+            Object.keys(projectFiles).forEach(f => {
+                if (f.startsWith(`html/tang${tierId}/`) && f.endsWith('.div')) {
+                    combinedHtml += projectFiles[f].content + "\n";
+                }
+                if (f.startsWith(`css/tang${tierId}/`)) {
+                    combinedCss += projectFiles[f].content + "\n";
+                }
+                if (f.startsWith(`js/tang${tierId}/`)) {
+                    let fileData = projectFiles[f];
+                    let codeContent = fileData ? (fileData.content || "") : "";
+                    
+                    // Tự động phát hiện module nếu có đánh dấu isModule hoặc chứa từ khóa import/export
+                    let isModuleFile = fileData?.isModule || codeContent.includes('import ') || codeContent.includes('export ');
+                    let scriptTagAttr = isModuleFile ? ' type="module"' : '';
+                    
+                    combinedJs += `<script${scriptTagAttr}>\n${codeContent}\n<\/script>\n`;
+                }
+            });
+            
+            contentToCopy = `<!-- HTML Tổng hợp Tầng ${tierId} -->\n${combinedHtml}\n<style>\n${combinedCss}\n</style>\n${combinedJs}`;
+        }
     } else {
         // Lấy nội dung file thường
         contentToCopy = projectFiles[filename]?.content || "";
@@ -1292,7 +1348,6 @@ window.copyFileContent = function(filename) {
         alert("Không thể copy nội dung!");
     });
 }
-
 
     </script>
 </body>
