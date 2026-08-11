@@ -275,36 +275,56 @@
             color: #ffffff;
             border-top: 2px solid var(--accent-color);
         }
+.editor-pane {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+    position: relative;
+    height: 100%;
+}
 
-        .editor-pane {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
+.line-numbers {
+    width: 45px;
+    background-color: #1e1e1e;
+    color: #858585;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    padding: 12px 4px;
+    text-align: right;
+    user-select: none;
+    line-height: 1.5;
+    border-right: 1px solid #333;
+    height: 100%;
+    box-sizing: border-box;
+    /* Đảm bảo khung cha .editor-pane có overflow: hidden sẽ tự cắt gọn phần thừa khi dịch chuyển */
+}
 
-        textarea {
-            width: 100%;
-            height: 400px;
-            background-color: var(--bg-base);
-            color: var(--text-color);
-            border: none;
-            padding: 12px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.9rem;
-            resize: none;
-            outline: none;
-            line-height: 1.5;
-            -webkit-appearance: none;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
+textarea {
+    flex: 1;
+    width: 100%;
+    height: 650px;
+    background-color: var(--bg-base, #1e1e1e);
+    color: var(--text-color, #d4d4d4);
+    border: none;
+    padding: 12px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.9rem;
+    resize: none;
+    outline: none;
+    line-height: 1.5; /* Bắt buộc line-height phải khớp tuyệt đối với .line-numbers */
+    -webkit-appearance: none;
+    overflow-y: auto; /* Chỉ cho phép textarea cuộn dọc */
+    -webkit-overflow-scrolling: touch;
+    white-space: pre;
+    tab-size: 4;
+    box-sizing: border-box;
+}
 
         #analyzer-view {
             display: none;
             width: 100%;
-            height: 300px;
+            height: 100%;
             background: #1e1e1e;
             color: #38bdf8;
             padding: 16px;
@@ -429,6 +449,7 @@
         <div class="editor-container">
             <div class="tabs-bar" id="tabsBarUI"></div>
             <div class="editor-pane">
+                <div id="lineNumbers" class="line-numbers">1</div>
                 <textarea id="codeEditor" autocapitalize="none" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Chọn file để chỉnh sửa..."></textarea>
                 <div id="analyzer-view"></div>
             </div>
@@ -502,7 +523,23 @@
         let currentActiveFile = "index.html";
         let openTabs = ["index.html"];
         const codeEditor = document.getElementById('codeEditor');
+        const lineNumbers = document.getElementById('lineNumbers');
         const analyzerView = document.getElementById('analyzer-view');
+
+        // Hàm cập nhật số dòng tự động
+        function updateLineNumbers() {
+            const lines = codeEditor.value.split('\n').length;
+            let output = '';
+            for (let i = 1; i <= lines; i++) {
+                output += i + '<br>';
+            }
+            lineNumbers.innerHTML = output;
+        }
+
+        // Đồng bộ cuộn mượt mà bằng hiệu ứng dịch chuyển khung số dòng
+codeEditor.addEventListener('scroll', () => {
+    lineNumbers.style.transform = `translateY(-${codeEditor.scrollTop}px)`;
+});
 
         async function syncToFirebase() {
             try {
@@ -518,6 +555,7 @@
 
         let saveTimeout;
         codeEditor.addEventListener('input', (e) => {
+            updateLineNumbers();
             if (projectFiles[currentActiveFile]) {
                 projectFiles[currentActiveFile].content = e.target.value;
                 saveData();
@@ -711,9 +749,11 @@
         window.openFile = function(filename) {
             if (!openTabs.includes(filename)) openTabs.push(filename);
             currentActiveFile = filename;
+            lineNumbers.style.display = 'block';
             codeEditor.style.display = 'block';
             analyzerView.style.display = 'none';
             codeEditor.value = projectFiles[filename] ? projectFiles[filename].content : '';
+            updateLineNumbers();
             document.getElementById('currentFileName').innerText = filename;
             renderFileList();
             renderTabs();
@@ -721,9 +761,11 @@
 
         window.switchFile = function(filename) {
             currentActiveFile = filename;
+            lineNumbers.style.display = 'block';
             codeEditor.style.display = 'block';
             analyzerView.style.display = 'none';
             codeEditor.value = projectFiles[filename] ? projectFiles[filename].content : '';
+            updateLineNumbers();
             document.getElementById('currentFileName').innerText = filename;
             renderFileList();
             renderTabs();
@@ -732,6 +774,7 @@
         window.openAnalyzer = function() {
             currentActiveFile = 'ANALYZE_TOOL';
             if (!openTabs.includes('ANALYZE_TOOL')) openTabs.push('ANALYZE_TOOL');
+            lineNumbers.style.display = 'none';
             codeEditor.style.display = 'none';
             analyzerView.style.display = 'block';
             document.getElementById('currentFileName').innerText = 'Báo Cáo Tổng Hợp';
