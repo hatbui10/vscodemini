@@ -546,6 +546,39 @@
             -webkit-overflow-scrolling: touch;
             box-sizing: border-box;
         }
+
+
+
+
+.file-copy-text-btn {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(37, 99, 235, 0.25));
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 5px;
+            color: #38bdf8;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 6px rgba(56, 189, 248, 0.15);
+        }
+        .file-copy-text-btn:hover {
+            background: linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(37, 99, 235, 0.45));
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5), inset 0 0 3px rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px) scale(1.05);
+        }
+        .file-copy-text-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+
+
+
     </style>
 </head>
 <body>
@@ -747,10 +780,16 @@
             document.getElementById('backdrop').classList.toggle('show');
         }
 
-        function renderFileList() {
+
+
+
+       function renderFileList() {
             const fileListUI = document.getElementById('fileListUI');
             fileListUI.innerHTML = '';
             
+            // SVG Icon cho nút tách ở ô tổng hợp
+            const downloadSvg = `<svg viewBox="0 0 24 24" style="width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><circle cx="12" cy="12" r="10"></circle><polyline points="8 12 12 16 16 12"></polyline><line x1="12" y1="8" x2="12" y2="16"></line></svg>`;
+
             const analyzeLi = document.createElement('li');
             analyzeLi.className = `file-item ${currentActiveFile === 'ANALYZE_TOOL' ? 'active' : ''}`;
             analyzeLi.innerHTML = `📊 <span style="color:#38bdf8; font-weight:bold;">Báo Cáo Tổng Hợp</span>`;
@@ -764,18 +803,24 @@
 
             const rootLi = document.createElement('li');
             rootLi.className = `file-item ${'index.html' === currentActiveFile ? 'active' : ''}`;
-            rootLi.innerHTML = `🌐 <span>index.html</span>`;
+            rootLi.innerHTML = `
+                🌐 <span>index.html</span>
+                <div style="display:flex; gap:4px; align-items:center;">
+                    <button class="file-copy-text-btn" onclick="event.stopPropagation(); copyFileContent('index.html')" title="Copy nội dung">Copy</button>
+                </div>
+            `;
             rootLi.onclick = () => { window.openFile('index.html'); window.toggleSidebar(); };
             fileListUI.appendChild(rootLi);
 
             projectTiers.forEach(tier => {
+                let masterKey = `MASTER_TIER_${tier}`;
+                
                 const groupHeader = document.createElement('div');
                 groupHeader.className = 'folder-group-header';
                 groupHeader.innerHTML = `
                     <div class="folder-group-top">
                         <span>📁 Tầng ${tier}</span>
                         <div class="folder-actions-inline">
-                            <button onclick="event.stopPropagation(); window.openMaster(${tier})" style="color:#eab308; font-weight:bold;" title="Tách/Gộp">📥 Tách/Gộp</button>
                             <button onclick="event.stopPropagation(); promptAddFile(${tier}, 'html')">+HTML</button>
                             <button onclick="event.stopPropagation(); promptAddFile(${tier}, 'css')">+CSS</button>
                             <button onclick="event.stopPropagation(); promptAddFile(${tier}, 'js')">+JS</button>
@@ -785,13 +830,19 @@
                 `;
                 fileListUI.appendChild(groupHeader);
 
-                let masterKey = `MASTER_TIER_${tier}`;
+                // Ô Tổng Hợp: Có chữ Copy và nút Tách
                 const masterItem = document.createElement('li');
                 masterItem.className = `file-item ${masterKey === currentActiveFile ? 'active' : ''}`;
-                masterItem.innerHTML = `⚡ <span style="color:#eab308; font-weight:bold;">[Ô Tổng Hợp Tầng ${tier}]</span>`;
-                masterItem.onclick = () => { window.openMaster(tier); window.toggleSidebar(); };
+                masterItem.innerHTML = `
+                    ⚡ <span style="color:#eab308; font-weight:bold;" onclick="window.openMaster(${tier}); window.toggleSidebar();">[File tổng hợp Tầng ${tier}]</span>
+                    <div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
+                        <button class="file-copy-text-btn" onclick="event.stopPropagation(); copyFileContent('${masterKey}')" title="Copy nội dung tổng hợp">Copy</button>
+                        <button class="file-icon-btn" onclick="event.stopPropagation(); window.openMaster(${tier}); window.toggleSidebar();" title="Tách vào các file con" style="color:#eab308; border-color:rgba(234,179,8,0.4); background:rgba(234,179,8,0.1); width:26px; height:26px; display:inline-flex; align-items:center; justify-content:center; border-radius:5px;">${downloadSvg}</button>
+                    </div>
+                `;
                 fileListUI.appendChild(masterItem);
 
+                // Các file con: Tên file và chữ Copy
                 ['html', 'css', 'js', 'libs'].forEach(type => {
                     let prefix = type === 'libs' ? `libs/tang${tier}/` : `${type}/tang${tier}/`;
                     let icon = type === 'html' ? '📄' : type === 'css' ? '🎨' : type === 'js' ? '⚡' : '📦';
@@ -802,8 +853,11 @@
                             const li = document.createElement('li');
                             li.className = `file-item ${filename === currentActiveFile ? 'active' : ''}`;
                             li.innerHTML = `
-                                <span style="flex:1;" onclick="window.openFile('${filename}'); window.toggleSidebar();">${icon} ${name}</span>
-                                <button class="file-delete-btn" onclick="event.stopPropagation(); deleteSpecificFile('${filename}', '${type}')">✕</button>
+                                <span onclick="window.openFile('${filename}'); window.toggleSidebar();">${icon} ${name}</span>
+                                <div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
+                                    <button class="file-copy-text-btn" onclick="event.stopPropagation(); copyFileContent('${filename}')" title="Copy nội dung">Copy</button>
+                                    <button class="file-delete-btn" onclick="event.stopPropagation(); deleteSpecificFile('${filename}', '${type}')" title="Xóa file">✕</button>
+                                </div>
                             `;
                             fileListUI.appendChild(li);
                         }
@@ -811,6 +865,9 @@
                 });
             });
         }
+
+
+
 
         window.addNewTier = function() {
             let newTier = projectTiers.length > 0 ? Math.max(...projectTiers) + 1 : 1;
@@ -1208,6 +1265,35 @@
                 alert(`Đã tách thành công code của Tầng ${tier} và hiển thị trên các thẻ ngang!`);
             }
         }
+
+window.copyFileContent = function(filename) {
+    let contentToCopy = "";
+    
+    // Kiểm tra nếu là file tổng hợp (Master)
+    if (filename.startsWith('MASTER_TIER_')) {
+        let tierId = filename.split('_')[2];
+        // Gọi lại logic gom nội dung của Master tier tương ứng nếu ứng dụng của bạn có sẵn hàm gom code, ví dụ:
+        contentToCopy = typeof window.generateMasterContent === 'function' ? window.generateMasterContent(tierId) : (projectFiles[filename]?.content || "");
+    } else {
+        // Lấy nội dung file thường
+        contentToCopy = projectFiles[filename]?.content || "";
+    }
+
+    if (!contentToCopy.trim()) {
+        alert("File này đang trống, không có gì để copy!");
+        return;
+    }
+
+    navigator.clipboard.writeText(contentToCopy).then(() => {
+        // Hiển thị thông báo nhỏ gọn hoặc đổi icon tạm thời cho biết đã copy thành công
+        alert(`Đã copy nội dung file: ${filename}`);
+    }).catch(err => {
+        console.error("Lỗi khi copy: ", err);
+        alert("Không thể copy nội dung!");
+    });
+}
+
+
     </script>
 </body>
 </html>
